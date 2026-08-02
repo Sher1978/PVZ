@@ -19,8 +19,9 @@ AsyncSessionLocal = async_sessionmaker(
 Base = declarative_base()
 
 async def get_db():
-    async with AsyncSessionLocal() as session:
-        try:
+    try:
+        async with AsyncSessionLocal() as session:
             yield session
-        finally:
-            await session.close()
+    except Exception as e:
+        print(f"DB Connection Unavailable: {e}")
+        yield None
