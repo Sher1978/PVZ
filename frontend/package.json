@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@telegram-apps/sdk-react": "^2.0.0",
+    "browserslist": "^4.28.7",
+    "caniuse-lite": "^1.0.30001806",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
