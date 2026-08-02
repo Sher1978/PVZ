@@ -38,3 +38,7 @@ async def telegram_bot_webhook(request: Request):
     update = Update.model_validate(data, context={"bot": bot})
     await dp.feed_update(bot, update)
     return {"status": "ok"}
+
+@app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def catch_all(request: Request, path_name: str):
+    return {"message": "Route caught by catch-all", "path": request.url.path, "path_name": path_name}
