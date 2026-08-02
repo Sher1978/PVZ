@@ -22,8 +22,11 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")
 app.include_router(alerts.router, prefix="/api/v1")
 
+@app.get("/")
 @app.get("/health")
+@app.get("/api")
 @app.get("/api/health")
+@app.get("/api/v1/health")
 async def health_check():
     return {"status": "ok", "version": settings.VERSION}
 
