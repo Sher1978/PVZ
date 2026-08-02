@@ -1,19 +1,11 @@
 {
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
+  "services": {
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite"
     },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+    "backend": {
+      "root": "backend"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/v1/alerts/check-cron",
-      "schedule": "*/15 * * * *"
-    }
-  ]
+  }
 }
