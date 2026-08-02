@@ -19,32 +19,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
   const dealItems = [
     {
       id: 'mst_9f83a210',
-      title: 'Sony WH-1000XM5 Black',
+      title: 'Sony WH-1000XM5 Black (Giao Nha Trang)',
       category: 'Наушники',
-      minPrice: 28990,
-      oldPrice: 35000,
-      dropPercent: 17,
-      platforms: ['ozon', 'wb'],
+      minPrice: 7490000,
+      oldPrice: 8900000,
+      dropPercent: 16,
+      platforms: ['shopee', 'lazada'],
       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'
     },
     {
       id: 'mst_macbook_m3',
       title: 'Apple MacBook Air 15" M3 (8/256)',
       category: 'Ноутбуки',
-      minPrice: 118400,
-      oldPrice: 139900,
+      minPrice: 28990000,
+      oldPrice: 34000000,
       dropPercent: 15,
-      platforms: ['wb', 'yandex_market'],
+      platforms: ['shopee', 'shein'],
       image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80'
     },
     {
       id: 'mst_dyson_airwrap',
-      title: 'Стайлер Dyson Airwrap Long Complete',
+      title: 'Dyson Airwrap Long Complete (VN Plug)',
       category: 'Красота и здоровье',
-      minPrice: 42900,
-      oldPrice: 56000,
-      dropPercent: 23,
-      platforms: ['ozon', 'wb', 'yandex_market'],
+      minPrice: 11900000,
+      oldPrice: 14500000,
+      dropPercent: 18,
+      platforms: ['lazada', 'shopee', 'shein'],
       image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80'
     }
   ];
@@ -52,14 +52,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
   return (
     <div className="space-y-6 pb-24 pt-2">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 p-5 text-white shadow-xl glow-cyan">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 via-rose-600 to-cyan-600 p-5 text-white shadow-xl glow-cyan">
         <div className="relative z-10 space-y-2">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5" /> SmartSearch TMA 1.0
+            <Sparkles className="w-3.5 h-3.5" /> SmartSearch Nha Trang 🇻🇳
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Сравнение цен в 1 клик</h1>
-          <p className="text-xs text-cyan-100 opacity-90">
-            Ищем наименьшую цену по Wildberries, Ozon, Яндекс.Маркет и AliExpress.
+          <h1 className="text-2xl font-extrabold tracking-tight">Сравнение цен во Вьетнаме</h1>
+          <p className="text-xs text-orange-100 opacity-90">
+            Ищем лучшую цену по Shopee VN, Lazada VN и Shein с доставкой в Нячанг.
           </p>
         </div>
         <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
@@ -133,8 +133,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
                 </div>
                 <h3 className="text-xs font-semibold text-slate-100 truncate">{item.title}</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-extrabold text-emerald-400">{item.minPrice.toLocaleString()} ₽</span>
-                  <span className="text-xs text-slate-500 line-through">{item.oldPrice.toLocaleString()} ₽</span>
+                  <span className="text-sm font-extrabold text-emerald-400">{item.minPrice.toLocaleString()} ₫</span>
+                  <span className="text-xs text-slate-500 line-through">{item.oldPrice.toLocaleString()} ₫</span>
                 </div>
               </div>
               <ArrowUpRight className="w-5 h-5 text-slate-600 group-hover:text-cyan-400 transition-colors" />

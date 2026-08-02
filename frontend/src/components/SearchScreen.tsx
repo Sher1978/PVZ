@@ -12,42 +12,44 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
   const [sortMode, setSortMode] = useState<'relevance' | 'price_asc' | 'price_desc'>('relevance');
 
   const platforms = [
-    { id: 'all', label: 'Все платфомы' },
+    { id: 'all', label: 'Все платфомы (VN)' },
+    { id: 'shopee', label: 'Shopee VN 🇻🇳' },
+    { id: 'lazada', label: 'Lazada VN 🇻🇳' },
+    { id: 'shein', label: 'Shein VN' },
     { id: 'wb', label: 'Wildberries' },
     { id: 'ozon', label: 'Ozon' },
-    { id: 'yandex_market', label: 'Яндекс.Маркет' },
   ];
 
   const searchResults = [
     {
       id: 'mst_9f83a210',
-      title: 'Беспроводные полноразмерные наушники Sony WH-1000XM5 Black',
+      title: 'Sony WH-1000XM5 Black (Chính Hãng - Giao Nha Trang)',
       category: 'Электроника / Наушники',
-      minPrice: 28990,
-      maxPrice: 34500,
-      offersCount: 4,
+      minPrice: 7490000,
+      maxPrice: 8900000,
+      offersCount: 3,
       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
       rating: 4.9,
       reviewsCount: 420,
       offers: [
-        { name: 'Ozon', price: 28990, oldPrice: 35000, color: 'bg-blue-600' },
-        { name: 'Wildberries', price: 29400, oldPrice: 32000, color: 'bg-purple-600' },
-        { name: 'Яндекс Маркет', price: 31200, oldPrice: 34000, color: 'bg-yellow-600' },
+        { name: 'Shopee VN', price: 7490000, oldPrice: 8900000, color: 'bg-orange-500', currency: '₫' },
+        { name: 'Lazada VN', price: 7650000, oldPrice: 8500000, color: 'bg-blue-600', currency: '₫' },
+        { name: 'Shein Global', price: 7890000, oldPrice: 8200000, color: 'bg-emerald-600', currency: '₫' },
       ]
     },
     {
       id: 'mst_airpods_max',
-      title: 'Беспроводные наушники Apple AirPods Max Space Gray',
+      title: 'Apple AirPods Max Space Gray (Bảo hành 12 tháng tại VN)',
       category: 'Электроника / Наушники',
-      minPrice: 54990,
-      maxPrice: 62000,
-      offersCount: 3,
+      minPrice: 13990000,
+      maxPrice: 15500000,
+      offersCount: 2,
       image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&q=80',
       rating: 4.8,
       reviewsCount: 280,
       offers: [
-        { name: 'Wildberries', price: 54990, oldPrice: 65000, color: 'bg-purple-600' },
-        { name: 'Ozon', price: 56200, oldPrice: 63000, color: 'bg-blue-600' },
+        { name: 'Shopee Mall', price: 13990000, oldPrice: 15500000, color: 'bg-orange-500', currency: '₫' },
+        { name: 'Lazada LazMall', price: 14200000, oldPrice: 15200000, color: 'bg-blue-600', currency: '₫' },
       ]
     }
   ];
@@ -132,7 +134,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
                       <span className="font-medium text-slate-200">{offer.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-emerald-400">{offer.price.toLocaleString()} ₽</span>
+                      <span className="font-extrabold text-emerald-400">{offer.price.toLocaleString()} ₫</span>
                       {idx === 0 && (
                         <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
                           Лучшая цена

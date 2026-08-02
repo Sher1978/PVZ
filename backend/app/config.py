@@ -24,12 +24,19 @@ class Settings(BaseSettings):
     MEILISEARCH_HOST: str = "http://localhost:7700"
     MEILI_MASTER_KEY: str = "master_key"
     
-    # API Keys
+    # API Keys & Credentials
     OZON_CLIENT_ID: Optional[str] = None
     OZON_API_KEY: Optional[str] = None
     WB_API_TOKEN: Optional[str] = None
     YANDEX_MARKET_OAUTH_TOKEN: Optional[str] = None
     YANDEX_MARKET_CAMPAIGN_ID: Optional[str] = None
+    
+    # Southeast Asia & Vietnam Marketplaces (Shopee, Lazada, Shein)
+    SHOPEE_PARTNER_ID: Optional[str] = None
+    SHOPEE_PARTNER_KEY: Optional[str] = None
+    LAZADA_APP_KEY: Optional[str] = None
+    LAZADA_APP_SECRET: Optional[str] = None
+    SHEIN_API_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"
