@@ -41,15 +41,28 @@ async def search_products(
     # Match offers to master products
     master_items = []
     for offer in offers[:limit]:
-        master = await product_matcher.match_or_create_master_product(db, offer)
+        try:
+            master = await product_matcher.match_or_create_master_product(db, offer)
+            master_id = str(master.id)
+            title = master.title
+            brand = master.brand
+            image = master.main_image_url or offer.image_url
+        except Exception as e:
+            print(f"DB matching fallback: {e}")
+            master_id = f"mst_{offer.external_sku}"
+            title = offer.title
+            brand = offer.brand
+            image = offer.image_url
+
         master_items.append({
-            "master_id": str(master.id),
-            "title": master.title,
-            "brand": master.brand,
-            "main_image": master.main_image_url or offer.image_url,
+            "master_id": master_id,
+            "title": title,
+            "brand": brand,
+            "main_image": image,
             "price": offer.price,
             "old_price": offer.old_price,
             "platform": offer.platform,
+            "currency": offer.currency,
             "url": offer.product_url,
             "rating": offer.rating,
             "reviews_count": offer.reviews_count
