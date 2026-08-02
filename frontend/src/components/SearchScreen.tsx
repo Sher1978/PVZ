@@ -12,12 +12,11 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
   const [sortMode, setSortMode] = useState<'relevance' | 'price_asc' | 'price_desc'>('relevance');
 
   const platforms = [
-    { id: 'all', label: 'Все платфомы (VN)' },
+    { id: 'all', label: 'Все платформы (VN)' },
     { id: 'shopee', label: 'Shopee VN 🇻🇳' },
     { id: 'lazada', label: 'Lazada VN 🇻🇳' },
+    { id: 'tiki', label: 'Tiki VN 🇻🇳' },
     { id: 'shein', label: 'Shein VN' },
-    { id: 'wb', label: 'Wildberries' },
-    { id: 'ozon', label: 'Ozon' },
   ];
 
   const searchResults = [

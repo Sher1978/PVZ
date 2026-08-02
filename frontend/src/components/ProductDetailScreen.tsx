@@ -76,8 +76,8 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
       <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Динамика цен</div>
-            <div className="text-lg font-black text-emerald-400">28 990 ₽ <span className="text-xs font-normal text-slate-500">(-13%)</span></div>
+            <div className="text-xs text-slate-400 font-medium">Динамика цен (Нячанг 🇻🇳)</div>
+            <div className="text-lg font-black text-emerald-400">7 490 000 ₫ <span className="text-xs font-normal text-slate-500">(-16%)</span></div>
           </div>
           <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-[11px]">
             {['1M', '3M', '6M', '1Y'].map((period) => (
@@ -98,7 +98,14 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
 
         <div className="h-44 w-full pt-2">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={priceHistoryData}>
+            <AreaChart data={[
+              { date: '01 Мая', minPrice: 8900000 },
+              { date: '15 Мая', minPrice: 8500000 },
+              { date: '01 Июня', minPrice: 8100000 },
+              { date: '15 Июня', minPrice: 7800000 },
+              { date: '01 Июля', minPrice: 7650000 },
+              { date: '01 Авг', minPrice: 7490000 },
+            ]}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
@@ -109,7 +116,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
               <YAxis stroke="#64748b" fontSize={10} tickLine={false} domain={['auto', 'auto']} hide />
               <Tooltip
                 contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }}
-                formatter={(val: number) => [`${val.toLocaleString()} ₽`, 'Минимальная цена']}
+                formatter={(val: number) => [`${val.toLocaleString()} ₫`, 'Минимальная цена']}
               />
               <Area type="monotone" dataKey="minPrice" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" />
             </AreaChart>
@@ -121,25 +128,46 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
       <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
         <h3 className="text-sm font-bold text-slate-100 flex items-center justify-between">
           <span>Сравнение предложений ({3})</span>
-          <span className="text-xs text-slate-400 font-normal">С учетом СПП & Скидок</span>
+          <span className="text-xs text-slate-400 font-normal">Доставка в Нячанг</span>
         </h3>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-emerald-500/40">
             <div>
               <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                Ozon Seller
-                <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] text-emerald-400 font-bold">ТОП ЦЕНА</span>
+                Shopee Vietnam Mall 🇻🇳
+                <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] text-emerald-400 font-bold">ЛУЧШАЯ ЦЕНА</span>
               </div>
-              <div className="text-[11px] text-slate-400">Доставка: 1-2 дня</div>
+              <div className="text-[11px] text-slate-400">Доставка в Нячанг: 1-2 дня</div>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-sm font-extrabold text-emerald-400">28 990 ₽</div>
-                <div className="text-[10px] text-slate-500 line-through">35 000 ₽</div>
+                <div className="text-sm font-extrabold text-emerald-400">7 490 000 ₫</div>
+                <div className="text-[10px] text-slate-500 line-through">8 900 000 ₫</div>
               </div>
               <a
-                href="https://ozon.ru"
+                href="https://shopee.vn"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-orange-500"
+              >
+                Купить <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <div>
+              <div className="text-xs font-bold text-slate-100">Lazada LazMall VN 🇻🇳</div>
+              <div className="text-[11px] text-slate-400">Доставка в Нячанг: 2 дня</div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-sm font-extrabold text-slate-100">7 650 000 ₫</div>
+                <div className="text-[10px] text-slate-500 line-through">8 500 000 ₫</div>
+              </div>
+              <a
+                href="https://lazada.vn"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-500"
@@ -151,19 +179,19 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
 
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
             <div>
-              <div className="text-xs font-bold text-slate-100">Wildberries Seller</div>
-              <div className="text-[11px] text-slate-400">Доставка: Завтра</div>
+              <div className="text-xs font-bold text-slate-100">TikiNOW Express 🇻🇳</div>
+              <div className="text-[11px] text-slate-400">Доставка в Нячанг: Экспресс</div>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-sm font-extrabold text-slate-100">29 400 ₽</div>
-                <div className="text-[10px] text-slate-500 line-through">32 000 ₽</div>
+                <div className="text-sm font-extrabold text-slate-100">7 800 000 ₫</div>
+                <div className="text-[10px] text-slate-500 line-through">8 200 000 ₫</div>
               </div>
               <a
-                href="https://wildberries.ru"
+                href="https://tiki.vn"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-purple-500"
+                className="flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-sky-500"
               >
                 Купить <ExternalLink className="w-3 h-3" />
               </a>
@@ -203,7 +231,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
                   onChange={(e) => setTargetPrice(e.target.value)}
                   className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3 text-base font-extrabold text-emerald-400 focus:border-cyan-500 focus:outline-none"
                 />
-                <span className="absolute right-4 top-3 text-sm font-bold text-slate-500">₽</span>
+                <span className="absolute right-4 top-3 text-sm font-bold text-slate-500">₫</span>
               </div>
             </div>
 

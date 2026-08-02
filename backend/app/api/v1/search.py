@@ -3,11 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import Optional, List
 from app.db.session import get_db
-from app.connectors.wb import wb_connector
-from app.connectors.ozon import ozon_connector
-from app.connectors.yandex import yandex_connector
 from app.connectors.shopee import shopee_connector
 from app.connectors.lazada import lazada_connector
+from app.connectors.tiki import tiki_connector
 from app.connectors.shein import shein_connector
 from app.services.matcher import product_matcher
 from app.models import MasterProduct, Offer
@@ -17,26 +15,22 @@ router = APIRouter(prefix="/search", tags=["Search"])
 @router.get("")
 async def search_products(
     q: str = Query(..., description="Search query string"),
-    marketplace: Optional[str] = Query("all", description="shopee, lazada, shein, wb, ozon, yandex_market, all"),
+    marketplace: Optional[str] = Query("all", description="shopee, lazada, tiki, shein, all"),
     sort: Optional[str] = Query("relevance", description="price_asc, price_desc, relevance"),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=50),
     db: AsyncSession = Depends(get_db)
 ):
-    # Fetch from connectors concurrently
+    # Fetch from Vietnam marketplaces concurrently
     offers = []
     if marketplace in ["all", "shopee"]:
         offers.extend(await shopee_connector.search_products(q, limit=limit))
     if marketplace in ["all", "lazada"]:
         offers.extend(await lazada_connector.search_products(q, limit=limit))
+    if marketplace in ["all", "tiki"]:
+        offers.extend(await tiki_connector.search_products(q, limit=limit))
     if marketplace in ["all", "shein"]:
         offers.extend(await shein_connector.search_products(q, limit=limit))
-    if marketplace in ["all", "wb"]:
-        offers.extend(await wb_connector.search_products(q, limit=limit))
-    if marketplace in ["all", "ozon"]:
-        offers.extend(await ozon_connector.search_products(q, limit=limit))
-    if marketplace in ["all", "yandex_market"]:
-        offers.extend(await yandex_connector.search_products(q, limit=limit))
 
     # Match offers to master products
     master_items = []
