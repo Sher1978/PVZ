@@ -1,0 +1,250 @@
+[ Сырой товар из API / Парсера ]
+│
+▼
+┌──────────────────────────┐
+│ 1. Нормализация данных  │  (Очистка названия, бренд, артикул/EAN, характеристики)
+└─────────────┬────────────┘
+│
+▼
+┌──────────────────────────┐
+│ 2. Извлечение Вектора   │  (Генерация Text Embedding via Sentence-BERT / Image Embedding via CLIP)
+└─────────────┬────────────┘
+│
+▼
+┌──────────────────────────┐
+│ 3. Расчет Cosine Distance│  (Поиск в Qdrant / Pgvector среди сужаемого списка категорий)
+└─────────────┬────────────┘
+│
+┌───────────┴───────────┐
+│ Threshold Score ≥ 0.88│
+├───────────────────────┤
+[ Да ]                  [ Нет ]
+│                       │
+▼                       ▼
+[ Привязать к существенной ] [ Создать новую Master-карточку ]
+[  Master-карточке товара  ]
+
+
+* **Шаг 1. Точный матч (Hard Rules):** Проверка по штрихкоду/EAN/SKU производителя или уникальной модели (например, `WH-1000XM5` + brand `Sony`). Если совпадение 100% — карточки объединяются мгновенно.
+* **Шаг 2. Нечеткий текст (NLP / Fuzzy Match):** Очистка строк от стоп-слов («акция», «скидка», «хит»), токенизация и сравнение Levenshtein / Jaccard Distance.
+* **Шаг 3. Векторное сходство (Vector Similarity):** Преобразование названия + характеристик + фото в векторный эмбеддинг. Вычисление `Cosine Similarity` в векторной базе Qdrant. Если `Score >= 0.88`, товары объединяются.
+
+---
+
+### 1.2. Search Orchestrator & Кэширование
+
+Для поддержания высокого SLA и отклика < 1.5 сек используется асинхронный оркестратор:
+
+[ Incoming Request: query="кофемашина de longhi", page=1 ]
+│
+▼
+┌──────────────────────┐
+│ Redis Query Hash Key │
+└──────────┬───────────┘
+│
+┌──────────────┴──────────────┐
+[ Key Exists? ]             [ Key Missing? ]
+│                             │
+(Да)                          (Нет)
+│                             │
+▼                             ▼
+[ Return Cached JSON ]    [ Search in Meilisearch Index ]
+(TTL: 1 hour)                         │
+┌───────┴───────┐
+[ Found > 10 items? ] [ Empty / Low count ]
+│                       │
+(Да)                    (Нет)
+│                       │
+▼                       ▼
+[ Return Results ]     [ Trigger Async Scraper Workers ]
+[ & Return Streaming / Polling ]
+
+
+---
+
+### 1.3. Price Alert Engine (Фоновый мониторинг и уведомления)
+
+1. **Планировщик (Scheduler):** Каждые 15–30 минут Cron-воркер формирует очередь товаров, на которые есть активные подписки пользователей (`price_alerts`).
+2. **Динамический приоритет:**
+   * Товары с высоким кол-вом подписок проверяются чаще (каждые 15 мин).
+   * Товары с low-priority — раз в 2–4 часа.
+3. **Trigger Alert:** При обнаружении падения цены ниже `target_price`:
+   * Формируется сообщение.
+   * `Bot Notification Worker` через Telegram Bot API делает Push-отправку.
+
+---
+
+## 2. Спецификация REST API (OpenAPI / FastAPI)
+
+Все защищенные эндпоинты требуют заголовок авторизации:
+`Authorization: Bearer <telegram_init_data_token>`
+
+---
+
+### 2.1. Авторизация и Сессии
+
+#### `POST /api/v1/auth/telegram-login`
+Авторизация пользователя и проверка `initData`.
+
+* **Request Body:**
+```json
+{
+  "init_data": "query_id=AAH...&user=%7B%22id%22%3A12345678...&hash=e3b..."
+}
+Response (200 OK):
+
+JSON
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
+  "token_type": "bearer",
+  "user": {
+    "telegram_id": 12345678,
+    "first_name": "Igor",
+    "username": "igor_sherlock",
+    "is_premium": true
+  }
+}
+2.2. Поиск и Выдача Товаров
+GET /api/v1/search
+Сквозной текстовый поиск товаров.
+
+Query Parameters:
+
+q (string, required): Поисковый запрос (напр., Sony WH-1000XM5).
+
+marketplace (string, optional): Фильтр platform (wb, ozon, yandex_market, all).
+
+sort (string, optional): price_asc, price_desc, rating, relevance (default: relevance).
+
+page (int, default: 1): Номер страницы.
+
+limit (int, default: 20): Количество элементов.
+
+Response (200 OK):
+
+JSON
+{
+  "total": 142,
+  "page": 1,
+  "limit": 20,
+  "items": [
+    {
+      "master_id": "mst_9f83a210",
+      "title": "Беспроводные полноразмерные наушники Sony WH-1000XM5 Black",
+      "category": "Электроника / Наушники",
+      "main_image": "[https://cdn.smartsearch.app/img/sony_xm5.jpg](https://cdn.smartsearch.app/img/sony_xm5.jpg)",
+      "min_price": 28990.00,
+      "max_price": 34500.00,
+      "offers_count": 4,
+      "platforms": [
+        {
+          "name": "ozon",
+          "price": 28990.00,
+          "old_price": 35000.00,
+          "in_stock": true,
+          "url": "[https://smartsearch.app/r/ozon/12345](https://smartsearch.app/r/ozon/12345)"
+        },
+        {
+          "name": "wb",
+          "price": 29400.00,
+          "old_price": 32000.00,
+          "in_stock": true,
+          "url": "[https://smartsearch.app/r/wb/67890](https://smartsearch.app/r/wb/67890)"
+        }
+      ]
+    }
+  ]
+}
+POST /api/v1/search/by-image
+Поиск схожих товаров по загруженной фотографии.
+
+Request (Multipart/form-data):
+
+file: Двоичный файл изображения (JPEG/PNG, max 10MB).
+
+Response (200 OK): Возвращает массив Master-карточек с коэффициентом схожести match_score (от 0.0 до 1.0).
+
+2.3. Карточка Товара и История Цен
+GET /api/v1/products/{master_id}
+Получение детальной информации по Master-карточке и всем сопоставленным офферам.
+
+GET /api/v1/products/{master_id}/price-history
+Данные для построения интерактивного графика истории цен.
+
+Query Parameters:
+
+period (string): 1m, 3m, 6m, 1y, all (default: 3m).
+
+Response (200 OK):
+
+JSON
+{
+  "master_id": "mst_9f83a210",
+  "period": "3m",
+  "history": [
+    {
+      "timestamp": "2026-05-01T00:00:00Z",
+      "min_price": 32900.00,
+      "avg_price": 34100.00,
+      "platform_prices": {
+        "ozon": 32900.00,
+        "wb": 33500.00
+      }
+    },
+    {
+      "timestamp": "2026-06-15T00:00:00Z",
+      "min_price": 28990.00,
+      "avg_price": 31000.00,
+      "platform_prices": {
+        "ozon": 28990.00,
+        "wb": 29400.00
+      }
+    }
+  ]
+}
+2.4. Управление Подписками на Цены (Price Alerts)
+POST /api/v1/alerts
+Создание подписки на снижение цены.
+
+Request Body:
+
+JSON
+{
+  "master_id": "mst_9f83a210",
+  "target_price": 27000.00,
+  "platforms": ["ozon", "wb"],
+  "notify_on_any_drop": false
+}
+GET /api/v1/alerts
+Список активных подписок текущего пользователя.
+
+DELETE /api/v1/alerts/{alert_id}
+Удаление отслеживания цены.
+
+3. Обработка Ошибок и Rate Limiting
+Rate Limiting (Защита от спама и DDOS):
+
+Ограничение по telegram_id и IP адресам через Redis Token Bucket Algorithm.
+
+Лимит на обычные запросы: 60 req/min.
+
+Лимит на загрузку картинок (/search/by-image): 10 req/min.
+
+Формат ответа при ошибке (RFC 7807 Problem Details):
+
+JSON
+{
+  "status_code": 429,
+  "error_code": "RATE_LIMIT_EXCEEDED",
+  "message": "Превышен лимит поисковых запросов. Попробуйте через 30 секунд.",
+  "details": {
+    "retry_after_seconds": 30
+  }
+}
+Документ подготовлен для сохранения в папке Bible/04_Backend_Logic_and_API.md.
+"""
+
+with open("04_Backend_Logic_and_API.md", "w", encoding="utf-8") as f:
+f.write(doc_content_4)
+
+print("FILE_CREATED: 04_Backend_Logic_and_API.md")
