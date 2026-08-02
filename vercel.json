@@ -1,12 +1,16 @@
 {
-  "services": {
-    "frontend": {
-      "root": "frontend",
-      "framework": "vite"
-    },
-    "backend": {
-      "root": "backend",
-      "entrypoint": "app/main.py"
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     }
-  }
+  ],
+  "crons": [
+    {
+      "path": "/api/v1/alerts/check-cron",
+      "schedule": "*/15 * * * *"
+    }
+  ]
 }
