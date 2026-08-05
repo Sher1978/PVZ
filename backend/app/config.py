@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     LAZADA_APP_KEY: Optional[str] = None
     LAZADA_APP_SECRET: Optional[str] = None
     SHEIN_API_KEY: Optional[str] = None
+
+    # ACCESSTRADE Vietnam Affiliate Network
+    # Get token at: https://pub2.accesstrade.vn/ -> Account Settings -> API
+    ACCESSTRADE_TOKEN: Optional[str] = None
+    ACCESSTRADE_LAZADA_CAMPAIGN_ID: Optional[str] = None   # Lazada VN CPS campaign
+    ACCESSTRADE_SHOPEE_CAMPAIGN_ID: Optional[str] = None   # Shopee VN Smartlink campaign
+    ACCESSTRADE_KIKI_CAMPAIGN_ID: Optional[str] = None     # Kiki Fashion VN campaign
+
+    # Kiki Fashion Vietnam
+    KIKI_AFFILIATE_SOURCE: str = "smartsearch_tma"
     
     class Config:
         env_file = ".env"

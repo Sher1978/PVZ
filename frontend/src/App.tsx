@@ -4,6 +4,7 @@ import { HomeScreen } from './components/HomeScreen';
 import { SearchScreen } from './components/SearchScreen';
 import { ProductDetailScreen } from './components/ProductDetailScreen';
 import { AlertsScreen } from './components/AlertsScreen';
+import { PvzOrdersScreen } from './components/PvzOrdersScreen';
 
 declare global {
   interface Window {
@@ -55,6 +56,9 @@ export function App() {
               onSelectProduct={handleSelectProduct}
             />
           )}
+          {activeTab === 'pvz_orders' && (
+            <PvzOrdersScreen onSelectProduct={handleSelectProduct} />
+          )}
           {activeTab === 'alerts' && (
             <AlertsScreen onSelectProduct={handleSelectProduct} />
           )}
@@ -70,3 +74,4 @@ export function App() {
 }
 
 export default App;
+

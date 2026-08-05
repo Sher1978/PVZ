@@ -7,6 +7,8 @@ from app.connectors.shopee import shopee_connector
 from app.connectors.lazada import lazada_connector
 from app.connectors.tiki import tiki_connector
 from app.connectors.shein import shein_connector
+from app.connectors.kiki import kiki_connector
+from app.services.accesstrade import generate_affiliate_link
 from app.services.matcher import product_matcher
 from app.models import MasterProduct, Offer
 
@@ -15,7 +17,7 @@ router = APIRouter(prefix="/search", tags=["Search"])
 @router.get("")
 async def search_products(
     q: str = Query(..., description="Search query string"),
-    marketplace: Optional[str] = Query("all", description="shopee, lazada, tiki, shein, all"),
+    marketplace: Optional[str] = Query("all", description="shopee, lazada, tiki, shein, kiki, all"),
     sort: Optional[str] = Query("relevance", description="price_asc, price_desc, relevance"),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=50),
@@ -31,6 +33,8 @@ async def search_products(
         offers.extend(await tiki_connector.search_products(q, limit=limit))
     if marketplace in ["all", "shein"]:
         offers.extend(await shein_connector.search_products(q, limit=limit))
+    if marketplace in ["all", "kiki"]:
+        offers.extend(await kiki_connector.search_products(q, limit=limit))
 
     # Match offers to master products
     master_items = []
@@ -48,6 +52,16 @@ async def search_products(
             brand = offer.brand
             image = offer.image_url
 
+        # Generate ACCESSTRADE affiliate link for supported platforms
+        affiliate_platforms = {"lazada", "shopee", "kiki"}
+        tracked_url = offer.product_url
+        if offer.platform in affiliate_platforms:
+            tracked_url = await generate_affiliate_link(
+                platform=offer.platform,
+                product_url=offer.product_url,
+                sub1=master_id,
+            )
+
         master_items.append({
             "master_id": master_id,
             "title": title,
@@ -57,7 +71,7 @@ async def search_products(
             "old_price": offer.old_price,
             "platform": offer.platform,
             "currency": offer.currency,
-            "url": offer.product_url,
+            "url": tracked_url,
             "rating": offer.rating,
             "reviews_count": offer.reviews_count
         })

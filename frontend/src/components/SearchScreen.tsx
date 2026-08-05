@@ -1,57 +1,88 @@
-import React, { useState } from 'react';
-import { Search, Filter, ExternalLink, Star, ArrowUpDown } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Filter, ExternalLink, Star, ArrowUpDown, Loader2, Zap } from 'lucide-react';
 
 interface SearchScreenProps {
   initialQuery?: string;
   onSelectProduct: (productId: string) => void;
 }
 
+const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
+
+const PLATFORM_CONFIG: Record<string, { label: string; color: string; badge?: string }> = {
+  shopee: { label: 'Shopee VN 🇻🇳',  color: 'bg-orange-500', badge: 'ACCESSTRADE' },
+  lazada: { label: 'Lazada VN 🇻🇳',  color: 'bg-blue-600',   badge: 'ACCESSTRADE' },
+  tiki:   { label: 'Tiki VN 🇻🇳',    color: 'bg-sky-500' },
+  shein:  { label: 'Shein Global',    color: 'bg-emerald-600' },
+  kiki:   { label: 'Kiki Fashion 👗', color: 'bg-pink-500',   badge: 'ACCESSTRADE' },
+};
+
+interface ApiItem {
+  master_id: string;
+  title: string;
+  brand?: string;
+  main_image?: string;
+  price: number;
+  old_price?: number;
+  platform: string;
+  currency: string;
+  url: string;
+  rating?: number;
+  reviews_count?: number;
+}
+
+
 export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony WH-1000XM5', onSelectProduct }) => {
   const [query, setQuery] = useState(initialQuery);
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [sortMode, setSortMode] = useState<'relevance' | 'price_asc' | 'price_desc'>('relevance');
+  const [results, setResults] = useState<ApiItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const doSearch = useCallback(async (q: string, platform: string, sort: string) => {
+    if (!q.trim()) return;
+    setIsLoading(true);
+    setHasSearched(true);
+    try {
+      const params = new URLSearchParams({ q, marketplace: platform, sort, limit: '15' });
+      const res = await fetch(`${API_BASE}/api/v1/search?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setResults(data.items || []);
+      }
+    } catch (e) {
+      console.error('Search error:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => doSearch(query, selectedPlatform, sortMode), 600);
+    return () => clearTimeout(debounce);
+  }, [query, selectedPlatform, sortMode, doSearch]);
 
   const platforms = [
-    { id: 'all', label: 'Все платформы (VN)' },
+    { id: 'all',    label: 'Все платформы (VN)' },
     { id: 'shopee', label: 'Shopee VN 🇻🇳' },
     { id: 'lazada', label: 'Lazada VN 🇻🇳' },
-    { id: 'tiki', label: 'Tiki VN 🇻🇳' },
-    { id: 'shein', label: 'Shein VN' },
+    { id: 'tiki',   label: 'Tiki VN 🇻🇳' },
+    { id: 'kiki',   label: 'Kiki Fashion 👗' },
+    { id: 'shein',  label: 'Shein Global' },
   ];
 
-  const searchResults = [
-    {
-      id: 'mst_9f83a210',
-      title: 'Sony WH-1000XM5 Black (Chính Hãng - Giao Nha Trang)',
-      category: 'Электроника / Наушники',
-      minPrice: 7490000,
-      maxPrice: 8900000,
-      offersCount: 3,
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
-      rating: 4.9,
-      reviewsCount: 420,
-      offers: [
-        { name: 'Shopee VN', price: 7490000, oldPrice: 8900000, color: 'bg-orange-500', currency: '₫' },
-        { name: 'Lazada VN', price: 7650000, oldPrice: 8500000, color: 'bg-blue-600', currency: '₫' },
-        { name: 'Shein Global', price: 7890000, oldPrice: 8200000, color: 'bg-emerald-600', currency: '₫' },
-      ]
-    },
-    {
-      id: 'mst_airpods_max',
-      title: 'Apple AirPods Max Space Gray (Bảo hành 12 tháng tại VN)',
-      category: 'Электроника / Наушники',
-      minPrice: 13990000,
-      maxPrice: 15500000,
-      offersCount: 2,
-      image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&q=80',
-      rating: 4.8,
-      reviewsCount: 280,
-      offers: [
-        { name: 'Shopee Mall', price: 13990000, oldPrice: 15500000, color: 'bg-orange-500', currency: '₫' },
-        { name: 'Lazada LazMall', price: 14200000, oldPrice: 15200000, color: 'bg-blue-600', currency: '₫' },
-      ]
-    }
-  ];
+  // Group API results by master_id for display
+  const grouped = results.reduce<Record<string, ApiItem[]>>((acc, item) => {
+    const key = item.master_id;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+
+  const masterItems = Object.entries(grouped).map(([id, offers]) => {
+    const best = offers.reduce((a, b) => a.price < b.price ? a : b);
+    return { id, title: best.title, brand: best.brand, image: best.main_image, offers, minPrice: best.price, rating: best.rating, reviewsCount: best.reviews_count };
+  });
 
   return (
     <div className="space-y-4 pb-24 pt-2">
@@ -84,9 +115,20 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
         ))}
       </div>
 
-      {/* Sort Options */}
+      {/* Sort Info Bar */}
       <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-        <span>Найдено 2 сопоставленных Master-карточки</span>
+        <span>
+          {isLoading ? (
+            <span className="flex items-center gap-1.5">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+              Поиск на платформах...
+            </span>
+          ) : hasSearched ? (
+            `Найдено ${masterItems.length} карточек`
+          ) : (
+            'Введите запрос для поиска'
+          )}
+        </span>
         <button
           onClick={() => setSortMode(sortMode === 'price_asc' ? 'price_desc' : 'price_asc')}
           className="flex items-center gap-1 text-cyan-400 font-medium hover:underline"
@@ -98,7 +140,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
 
       {/* Search Results List */}
       <div className="space-y-3">
-        {searchResults.map((item) => (
+        {masterItems.map((item) => (
           <div
             key={item.id}
             onClick={() => onSelectProduct(item.id)}
@@ -106,46 +148,72 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
           >
             <div className="flex gap-3">
               <img
-                src={item.image}
+                src={item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'}
                 alt={item.title}
                 className="w-24 h-24 rounded-xl object-cover bg-slate-800"
               />
               <div className="flex-1 min-w-0 space-y-1">
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider">{item.category}</span>
+                {item.brand && <span className="text-[10px] text-slate-500 uppercase tracking-wider">{item.brand}</span>}
                 <h3 className="text-xs font-bold text-slate-100 line-clamp-2">{item.title}</h3>
-
-                <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span>{item.rating}</span>
-                  <span className="text-slate-500">({item.reviewsCount} отзывов)</span>
-                </div>
+                {item.rating != null && (
+                  <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>{item.rating.toFixed(1)}</span>
+                    {item.reviewsCount != null && <span className="text-slate-500">({item.reviewsCount.toLocaleString()} отзывов)</span>}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Platform Offers Matrix */}
             <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
-              <div className="text-[11px] font-semibold text-slate-400">Сравнение {item.offersCount} предложений:</div>
+              <div className="text-[11px] font-semibold text-slate-400">Предложения ({item.offers.length}):</div>
               <div className="grid gap-1.5">
-                {item.offers.map((offer, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-800/50">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${offer.color}`} />
-                      <span className="font-medium text-slate-200">{offer.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-emerald-400">{offer.price.toLocaleString()} ₫</span>
-                      {idx === 0 && (
-                        <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
-                          Лучшая цена
+                {item.offers.map((offer, idx) => {
+                  const cfg = PLATFORM_CONFIG[offer.platform] || { label: offer.platform, color: 'bg-slate-500' };
+                  const isBest = offer.price === item.minPrice;
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-between text-xs rounded-lg px-3 py-2 border ${
+                        isBest ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-900/60 border-slate-800/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${cfg.color}`} />
+                        <span className="font-medium text-slate-200">{cfg.label}</span>
+                        {cfg.badge && (
+                          <span className="flex items-center gap-0.5 rounded bg-violet-500/20 px-1.5 py-0.5 text-[8px] font-bold text-violet-300">
+                            <Zap className="w-2 h-2" />{cfg.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-extrabold ${isBest ? 'text-emerald-400' : 'text-slate-100'}`}>
+                          {offer.price.toLocaleString()} ₫
                         </span>
-                      )}
+                        {isBest && (
+                          <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
+                            Лучшая
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
         ))}
+
+        {/* Empty state */}
+        {!isLoading && hasSearched && masterItems.length === 0 && (
+          <div className="text-center py-12 text-slate-500">
+            <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">Товары не найдены</p>
+            <p className="text-xs mt-1">Попробуйте другой запрос</p>
+          </div>
+        )}
       </div>
     </div>
   );
