@@ -36,8 +36,10 @@ class ShopeeConnector(BaseMarketplaceConnector):
                         raw_price = item.get("price", 0) / 100000  # Shopee raw price scale factor
                         raw_old_price = item.get("price_before_discount", 0) / 100000
                         image_hash = item.get("image", "")
+                        images_hashes = item.get("images", []) or ([image_hash] if image_hash else [])
+                        images_urls = [f"https://down-vn.img.susercontent.com/file/{h}" for h in images_hashes if h]
 
-                        image_url = f"https://down-vn.img.susercontent.com/file/{image_hash}" if image_hash else "https://cdn.smartsearch.app/img/shopee_default.jpg"
+                        image_url = images_urls[0] if images_urls else "https://cdn.smartsearch.app/img/shopee_default.jpg"
                         product_url = f"https://shopee.vn/product/{shopid}/{itemid}"
 
                         offers.append(StandardOffer(
@@ -50,6 +52,7 @@ class ShopeeConnector(BaseMarketplaceConnector):
                             currency="VND",
                             product_url=product_url,
                             image_url=image_url,
+                            images=images_urls if images_urls else [image_url],
                             in_stock=True,
                             rating=float(item.get("item_rating", {}).get("rating_star", 4.8)),
                             reviews_count=item.get("historical_sold", 120)
@@ -57,23 +60,6 @@ class ShopeeConnector(BaseMarketplaceConnector):
         except Exception as e:
             print(f"Error in Shopee Search: {e}")
 
-        # Fallback SLA offer if API is rate limited
-        if not offers:
-            mock_sku = f"shopee_vn_{abs(hash(query)) % 1000000}"
-            offers.append(StandardOffer(
-                platform="shopee",
-                external_sku=mock_sku,
-                title=f"{query} (Shopee Vietnam Mall)",
-                brand="Shopee VN",
-                price=350000.0,
-                old_price=420000.0,
-                currency="VND",
-                product_url=f"https://shopee.vn/search?keyword={query}",
-                image_url="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80",
-                in_stock=True,
-                rating=4.9,
-                reviews_count=850
-            ))
         return offers
 
     async def get_product_by_sku(self, sku: str) -> Optional[StandardOffer]:

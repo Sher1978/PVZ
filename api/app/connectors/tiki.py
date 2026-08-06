@@ -46,22 +46,6 @@ class TikiConnector(BaseMarketplaceConnector):
         except Exception as e:
             print(f"Error in Tiki Search: {e}")
 
-        if not offers:
-            mock_sku = f"tiki_vn_{abs(hash(query)) % 1000000}"
-            offers.append(StandardOffer(
-                platform="tiki",
-                external_sku=mock_sku,
-                title=f"{query} (TikiNOW Giao 2h Nha Trang)",
-                brand="Tiki VN",
-                price=330000.0,
-                old_price=390000.0,
-                currency="VND",
-                product_url=f"https://tiki.vn/search?q={query}",
-                image_url="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
-                in_stock=True,
-                rating=4.9,
-                reviews_count=980
-            ))
         return offers
 
     async def get_product_by_sku(self, sku: str) -> Optional[StandardOffer]:

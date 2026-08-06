@@ -159,7 +159,7 @@ export const PvzModal: React.FC<PvzModalProps> = ({ product, onClose, onOrderCre
                 <span>Получатель:</span> <span className="font-semibold text-slate-200">{createdOrder.recipient_name}</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>К оплате при получении:</span>{' '}
+                <span>Сумма предоплаты (100%):</span>{' '}
                 <span className="font-extrabold text-emerald-400">
                   {createdOrder.price?.toLocaleString()} {createdOrder.currency}
                 </span>
@@ -258,10 +258,13 @@ export const PvzModal: React.FC<PvzModalProps> = ({ product, onClose, onOrderCre
                     <span className="font-semibold text-emerald-400">БЕСПЛАТНО</span>
                   </div>
                   <div className="border-t border-slate-800 pt-1.5 flex justify-between font-extrabold text-sm text-slate-100">
-                    <span>Итого к оплате при получении:</span>
+                    <span>Итого к предоплате:</span>
                     <span className="text-emerald-400">
                       {product.price.toLocaleString()} {product.currency}
                     </span>
+                  </div>
+                  <div className="mt-2 rounded-xl bg-amber-500/10 border border-amber-500/30 p-2 text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                    <span>🔒 100% Предоплата заказа (Оплата при получении НЕ поддерживается)</span>
                   </div>
                 </div>
 
@@ -280,13 +283,22 @@ export const PvzModal: React.FC<PvzModalProps> = ({ product, onClose, onOrderCre
             {/* TAB 2: SELF ORDER (Secondary Flow) */}
             {activeTab === 'self_order' && (
               <div className="space-y-4 animate-in fade-in">
-                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 space-y-1">
-                  <div className="font-bold flex items-center gap-1 text-amber-300">
-                    💡 Как самостоятельно выкупить на Shopee/Lazada:
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 space-y-2">
+                  <div className="font-extrabold flex items-center gap-1.5 text-amber-300">
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    Справка по самостоятельной покупке (НЕ через выкуп ПВЗ):
                   </div>
-                  <p className="text-[11px] leading-relaxed text-slate-300">
-                    Вставьте наш адрес ПВЗ в поле доставки на Shopee/Lazada и ОБЯЗАТЕЛЬНО укажите ваш персональный ID получателя в имени, чтобы мы сразу привязали посылку к вам.
-                  </p>
+                  <ul className="text-[11px] space-y-1.5 text-slate-300 leading-relaxed list-disc pl-4">
+                    <li>
+                      <strong>1. Скопируйте адрес ПВЗ</strong> ниже и укажите его в качестве адреса доставки (Địa chỉ) на маркетплейсе.
+                    </li>
+                    <li>
+                      <strong>2. Укажите ваше имя и ID получателя</strong> в поле «Имя получателя» (Tên người nhận) для точности идентификации.
+                    </li>
+                    <li>
+                      <strong>📦 Условия хранения:</strong> Бесплатное хранение посылки в ПВЗ — 7 дней с момента прихода. Далее хранение и выдача осуществляются согласно правилам и тарифам компании.
+                    </li>
+                  </ul>
                 </div>
 
                 {/* Copyable Personal ID */}

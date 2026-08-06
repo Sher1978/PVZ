@@ -1,53 +1,50 @@
-import React, { useState } from 'react';
-import { Search, Camera, Link as LinkIcon, TrendingDown, Sparkles, Tag, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Camera, Link as LinkIcon, TrendingDown, Sparkles, Tag, ArrowUpRight, Loader2 } from 'lucide-react';
 
 interface HomeScreenProps {
   onSearchSubmit: (query: string) => void;
   onSelectProduct: (productId: string) => void;
 }
 
+const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelectProduct }) => {
   const [searchInput, setSearchInput] = useState('');
+  const [dealItems, setDealItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadRealDeals() {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/search?q=sony&limit=4`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            setDealItems(data.items);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load deals:', e);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadRealDeals();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
+      if (document.activeElement && typeof (document.activeElement as any).blur === 'function') {
+        (document.activeElement as HTMLElement).blur();
+      }
+      if (window.Telegram?.WebApp?.closeKeyboard) {
+        window.Telegram.WebApp.closeKeyboard();
+      }
       onSearchSubmit(searchInput.trim());
     }
   };
-
-  const dealItems = [
-    {
-      id: 'mst_9f83a210',
-      title: 'Sony WH-1000XM5 Black (Giao Nha Trang)',
-      category: 'Наушники',
-      minPrice: 7490000,
-      oldPrice: 8900000,
-      dropPercent: 16,
-      platforms: ['shopee', 'lazada'],
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'
-    },
-    {
-      id: 'mst_macbook_m3',
-      title: 'Apple MacBook Air 15" M3 (8/256)',
-      category: 'Ноутбуки',
-      minPrice: 28990000,
-      oldPrice: 34000000,
-      dropPercent: 15,
-      platforms: ['shopee', 'shein'],
-      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80'
-    },
-    {
-      id: 'mst_dyson_airwrap',
-      title: 'Dyson Airwrap Long Complete (VN Plug)',
-      category: 'Красота и здоровье',
-      minPrice: 11900000,
-      oldPrice: 14500000,
-      dropPercent: 18,
-      platforms: ['lazada', 'shopee', 'shein'],
-      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80'
-    }
-  ];
 
   return (
     <div className="space-y-6 pb-24 pt-2">
@@ -59,7 +56,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">Сравнение цен во Вьетнаме</h1>
           <p className="text-xs text-orange-100 opacity-90">
-            Ищем лучшую цену по Shopee VN, Lazada VN и Shein с доставкой в Нячанг.
+            Ищем лучшую цену по Shopee VN, Lazada VN, Tiki и Shein с доставкой в Нячанг.
           </p>
         </div>
         <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
@@ -72,7 +69,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Введите название, артикул или вставьте ссылку..."
+            placeholder="Введите название товара или артикул..."
             className="w-full rounded-xl bg-slate-900/90 border border-slate-800 py-3.5 pl-11 pr-12 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all shadow-inner"
           />
           <Search className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-500" />
@@ -87,60 +84,66 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => onSearchSubmit('Наушники по фото')}
+            onClick={() => onSearchSubmit('Sony WH-1000XM5')}
             className="flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800/80 p-3 text-xs font-medium text-slate-300 hover:border-cyan-500/50 hover:text-cyan-400 transition-all"
           >
-            <Camera className="w-4 h-4 text-cyan-400" /> Поиск по фото
+            <Camera className="w-4 h-4 text-cyan-400" /> Наушники
           </button>
           <button
             type="button"
-            onClick={() => onSearchSubmit('https://www.wildberries.ru/catalog/12345')}
+            onClick={() => onSearchSubmit('MacBook Air M3')}
             className="flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800/80 p-3 text-xs font-medium text-slate-300 hover:border-cyan-500/50 hover:text-cyan-400 transition-all"
           >
-            <LinkIcon className="w-4 h-4 text-cyan-400" /> Поиск по ссылке
+            <LinkIcon className="w-4 h-4 text-cyan-400" /> Ноутбуки
           </button>
         </div>
       </form>
 
-      {/* Top Deals Section */}
+      {/* Real Parsed Deals Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-base font-bold text-slate-100">
             <TrendingDown className="w-5 h-5 text-emerald-400" />
-            Аномальные скидки дня
+            Реальные предложения в маркетплейсах 🇻🇳
           </h2>
-          <span className="text-xs text-cyan-400 font-medium cursor-pointer">Все 24 🔥</span>
         </div>
 
-        <div className="grid gap-3">
-          {dealItems.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onSelectProduct(item.id)}
-              className="glass-panel group relative flex items-center gap-3.5 rounded-xl p-3 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer"
-            >
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-20 h-20 rounded-lg object-cover bg-slate-800 group-hover:scale-105 transition-transform"
-              />
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
-                    <Tag className="w-3 h-3" /> -{item.dropPercent}%
-                  </span>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider">{item.category}</span>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8 text-xs text-slate-400 gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+            Загрузка актуальных предложений...
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {dealItems.map((item, idx) => (
+              <div
+                key={item.master_id || idx}
+                onClick={() => onSearchSubmit(item.title)}
+                className="glass-panel group relative flex items-center gap-3.5 rounded-xl p-3 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer"
+              >
+                <img
+                  src={item.main_image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'}
+                  alt={item.title}
+                  className="w-20 h-20 rounded-lg object-cover bg-slate-800 group-hover:scale-105 transition-transform"
+                />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 uppercase">
+                      <Tag className="w-3 h-3" /> {item.platform || 'LIVE'}
+                    </span>
+                    {item.brand && <span className="text-[10px] text-slate-400 uppercase tracking-wider">{item.brand}</span>}
+                  </div>
+                  <h3 className="text-xs font-semibold text-slate-100 truncate">{item.title}</h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-extrabold text-emerald-400">{item.price ? item.price.toLocaleString() : '350 000'} ₫</span>
+                    {item.old_price && <span className="text-xs text-slate-500 line-through">{item.old_price.toLocaleString()} ₫</span>}
+                  </div>
                 </div>
-                <h3 className="text-xs font-semibold text-slate-100 truncate">{item.title}</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-extrabold text-emerald-400">{item.minPrice.toLocaleString()} ₫</span>
-                  <span className="text-xs text-slate-500 line-through">{item.oldPrice.toLocaleString()} ₫</span>
-                </div>
+                <ArrowUpRight className="w-5 h-5 text-slate-600 group-hover:text-cyan-400 transition-colors" />
               </div>
-              <ArrowUpRight className="w-5 h-5 text-slate-600 group-hover:text-cyan-400 transition-colors" />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

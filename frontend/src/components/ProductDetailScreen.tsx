@@ -1,29 +1,88 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Bell, Heart, ExternalLink, ShieldCheck, TrendingDown, Star, Zap, Package, MapPin, Copy, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Bell, Heart, ExternalLink, ShieldCheck, TrendingDown, Star, Zap, Package, MapPin, Copy, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { PvzModal } from './PvzModal';
 
+export interface ProductOffer {
+  platform: string;
+  price: number;
+  old_price?: number;
+  url: string;
+  delivery_info?: string;
+}
+
+export interface ProductDetailItem {
+  id: string;
+  title: string;
+  brand?: string;
+  image?: string;
+  images?: string[];
+  offers?: ProductOffer[];
+}
+
 interface ProductDetailScreenProps {
   productId: string;
+  productItem?: ProductDetailItem | null;
   onBack: () => void;
 }
 
-export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ productId, onBack }) => {
+const PLATFORM_CONFIG: Record<string, { label: string; color: string; badge?: string; btnBg: string; hoverBg: string }> = {
+  shopee: { label: 'Shopee Vietnam Mall 🇻🇳', color: 'bg-orange-500', badge: 'ACCESSTRADE', btnBg: 'bg-orange-600', hoverBg: 'hover:bg-orange-500' },
+  lazada: { label: 'Lazada LazMall VN 🇻🇳', color: 'bg-blue-600', badge: 'ACCESSTRADE', btnBg: 'bg-blue-600', hoverBg: 'hover:bg-blue-500' },
+  tiki:   { label: 'TikiNOW Express 🇻🇳', color: 'bg-sky-500', btnBg: 'bg-sky-600', hoverBg: 'hover:bg-sky-500' },
+  shein:  { label: 'Shein Global', color: 'bg-emerald-600', btnBg: 'bg-emerald-600', hoverBg: 'hover:bg-emerald-500' },
+  kiki:   { label: 'Kiki Fashion 👗', color: 'bg-pink-500', badge: 'ACCESSTRADE', btnBg: 'bg-pink-600', hoverBg: 'hover:bg-pink-500' },
+};
+
+export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ productId, productItem, onBack }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('3m');
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showPvzModal, setShowPvzModal] = useState(false);
-  const [targetPrice, setTargetPrice] = useState('27000');
+  const [targetPrice, setTargetPrice] = useState('7000000');
   const [isAlertCreated, setIsAlertCreated] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+  const title = productItem?.title || 'Беспроводные полноразмерные наушники Sony WH-1000XM5 Black';
+  const brand = productItem?.brand || 'Sony • Электроника';
 
-  const priceHistoryData = [
-    { date: '01 Мая', minPrice: 33500 },
-    { date: '15 Мая', minPrice: 32900 },
-    { date: '01 Июня', minPrice: 31000 },
-    { date: '15 Июня', minPrice: 29500 },
-    { date: '01 Июля', minPrice: 29400 },
-    { date: '01 Авг', minPrice: 28990 },
+  const imagesList = Array.from(
+    new Set(
+      (productItem?.images && productItem.images.length > 0
+        ? productItem.images
+        : [productItem?.image]
+      ).filter(Boolean) as string[]
+    )
+  );
+
+  const fallbackImages = [
+    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
+    'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80',
+    'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80',
   ];
+
+  const galleryImages = imagesList.length > 0 ? imagesList : fallbackImages;
+  const currentImage = galleryImages[activeImageIndex] || galleryImages[0];
+
+  const getMarketplaceLink = (platform: string, customUrl?: string) => {
+    if (customUrl && !['https://shopee.vn', 'https://lazada.vn', 'https://tiki.vn', 'https://www.kikifashion.com'].includes(customUrl)) {
+      return customUrl;
+    }
+    const q = encodeURIComponent(title);
+    switch (platform) {
+      case 'shopee':
+        return `https://shopee.vn/search?keyword=${q}`;
+      case 'lazada':
+        return `https://www.lazada.vn/catalog/?q=${q}`;
+      case 'tiki':
+        return `https://tiki.vn/search?q=${q}`;
+      case 'shein':
+        return `https://www.shein.com/pdsearch/${q}`;
+      case 'kiki':
+        return `https://www.google.com/search?q=${q}+kiki+fashion+vietnam`;
+      default:
+        return `https://shopee.vn/search?keyword=${q}`;
+    }
+  };
 
   const handleCreateAlert = () => {
     if (window.Telegram?.WebApp?.HapticFeedback) {
@@ -32,6 +91,22 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
     setIsAlertCreated(true);
     setShowAlertModal(false);
   };
+
+  // Determine actual offers for this item (ONLY show found platform offers)
+  const rawOffers: ProductOffer[] = productItem?.offers && productItem.offers.length > 0
+    ? productItem.offers
+    : [
+        {
+          platform: 'shopee',
+          price: 7490000,
+          old_price: 8900000,
+          url: getMarketplaceLink('shopee'),
+          delivery_info: 'Доставка во Вьетнам: 1-2 дня'
+        }
+      ];
+
+  const sortedOffers = [...rawOffers].sort((a, b) => a.price - b.price);
+  const minPrice = sortedOffers[0]?.price;
 
   return (
     <div className="space-y-5 pb-28 pt-2">
@@ -60,22 +135,170 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
         </div>
       </div>
 
-      {/* Main Image Banner */}
+      {/* Main Image Banner with Multi-Image Gallery Carousel */}
       <div className="glass-panel relative rounded-2xl p-4 border border-slate-800 text-center space-y-3">
-        <img
-          src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80"
-          alt="Sony WH-1000XM5"
-          className="w-48 h-48 mx-auto object-cover rounded-xl shadow-lg"
-        />
-        <div className="space-y-1">
-          <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-semibold">Sony • Электроника</span>
+        <div className="relative group max-w-[240px] mx-auto">
+          <img
+            src={currentImage}
+            alt={`${title} - preview ${activeImageIndex + 1}`}
+            className="w-48 h-48 mx-auto object-cover rounded-xl shadow-lg transition-all duration-300"
+          />
+          {galleryImages.length > 1 && (
+            <>
+              <button
+                onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))}
+                className="absolute left-0 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-900/80 text-slate-300 hover:text-white border border-slate-700/80 backdrop-blur-sm transition-all"
+                title="Предыдущее фото"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setActiveImageIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0))}
+                className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-900/80 text-slate-300 hover:text-white border border-slate-700/80 backdrop-blur-sm transition-all"
+                title="Следующее фото"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Thumbnail Selector Bar */}
+        {galleryImages.length > 1 && (
+          <div className="flex items-center justify-center gap-2 overflow-x-auto pt-1 pb-1 scrollbar-none">
+            {galleryImages.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveImageIndex(idx)}
+                className={`relative rounded-lg overflow-hidden border-2 transition-all ${
+                  activeImageIndex === idx
+                    ? 'border-cyan-500 scale-105 shadow-md shadow-cyan-500/30'
+                    : 'border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-600'
+                }`}
+              >
+                <img src={img} alt={`thumb-${idx}`} className="w-10 h-10 object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-1 pt-1">
+          <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-semibold">{brand}</span>
           <h1 className="text-base font-extrabold text-slate-100">
-            Беспроводные полноразмерные наушники Sony WH-1000XM5 Black
+            {title}
           </h1>
         </div>
       </div>
 
-      {/* Interactive Price History Chart */}
+      {/* Dynamic Offers Matrix Table */}
+      <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
+        <h3 className="text-sm font-bold text-slate-100 flex items-center justify-between">
+          <span>Сравнение предложений ({sortedOffers.length})</span>
+          <span className="text-xs text-slate-400 font-normal">Доставка во Вьетнам 🇻🇳</span>
+        </h3>
+
+        <div className="space-y-2">
+          {sortedOffers.map((offer, idx) => {
+            const cfg = PLATFORM_CONFIG[offer.platform] || {
+              label: offer.platform.toUpperCase(),
+              color: 'bg-cyan-500',
+              btnBg: 'bg-cyan-600',
+              hoverBg: 'hover:bg-cyan-500'
+            };
+            const isBest = offer.price === minPrice;
+            const offerUrl = offer.url || getMarketplaceLink(offer.platform);
+
+            return (
+              <div
+                key={idx}
+                className={`flex items-center justify-between p-3 rounded-xl bg-slate-900 border ${
+                  isBest ? 'border-emerald-500/40' : 'border-slate-800'
+                }`}
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    {cfg.label}
+                    {isBest && (
+                      <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] text-emerald-400 font-bold">
+                        ЛУЧШАЯ ЦЕНА
+                      </span>
+                    )}
+                    {cfg.badge && (
+                      <span className="flex items-center gap-0.5 rounded bg-violet-500/20 px-1.5 py-0.5 text-[8px] font-bold text-violet-300">
+                        <Zap className="w-2.5 h-2.5" />{cfg.badge}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    {offer.delivery_info || 'Доставка во Вьетнам: 1-3 дня'}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className={`text-sm font-extrabold ${isBest ? 'text-emerald-400' : 'text-slate-100'}`}>
+                      {offer.price.toLocaleString()} ₫
+                    </div>
+                    {offer.old_price && offer.old_price > offer.price && (
+                      <div className="text-[10px] text-slate-500 line-through">
+                        {offer.old_price.toLocaleString()} ₫
+                      </div>
+                    )}
+                  </div>
+                  <a
+                    href={offerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition-all ${cfg.btnBg} ${cfg.hoverBg}`}
+                  >
+                    Купить <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* PVZ Delivery Options Card */}
+      <div className="glass-panel rounded-2xl p-4 border border-cyan-500/30 bg-gradient-to-b from-cyan-950/20 to-slate-900 space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
+            <Package className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-100 flex items-center gap-1.5">
+              Доставка в ПВЗ SmartSearch 🇻🇳
+              <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-400">
+                Нячанг • Дананг • Сайгон
+              </span>
+            </h3>
+            <p className="text-[11px] text-slate-400">Выберите удобный способ получения вашей посылки:</p>
+          </div>
+        </div>
+
+        {/* Action Buttons: Primary & Secondary */}
+        <div className="space-y-2 pt-1">
+          {/* PRIMARY: Buy via PVZ */}
+          <button
+            onClick={() => setShowPvzModal(true)}
+            className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 p-3 text-xs font-extrabold text-white shadow-lg glow-cyan flex items-center justify-center gap-2 hover:opacity-95 transition-all"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            1. Выкупить с доставкой в ПВЗ (Основной способ)
+          </button>
+
+          {/* SECONDARY: Self Order to PVZ address */}
+          <button
+            onClick={() => setShowPvzModal(true)}
+            className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 flex items-center justify-center gap-2 transition-all"
+          >
+            <Copy className="w-3.5 h-3.5 text-cyan-400" />
+            2. Скопировать адрес ПВЗ для своего заказа
+          </button>
+        </div>
+      </div>
+
+      {/* Interactive Price History Chart (MOVED TO THE BOTTOM) */}
       <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -127,156 +350,6 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
         </div>
       </div>
 
-      {/* Offers Matrix Table */}
-      <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
-        <h3 className="text-sm font-bold text-slate-100 flex items-center justify-between">
-          <span>Сравнение предложений ({3})</span>
-          <span className="text-xs text-slate-400 font-normal">Доставка в Нячанг</span>
-        </h3>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-emerald-500/40">
-            <div>
-              <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                Shopee Vietnam Mall 🇻🇳
-                <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] text-emerald-400 font-bold">ЛУЧШАЯ ЦЕНА</span>
-                <span className="flex items-center gap-0.5 rounded bg-violet-500/20 px-1.5 py-0.5 text-[8px] font-bold text-violet-300">
-                  <Zap className="w-2.5 h-2.5" />ACCESSTRADE
-                </span>
-              </div>
-              <div className="text-[11px] text-slate-400">Доставка в Нячанг: 1-2 дня</div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-sm font-extrabold text-emerald-400">7 490 000 ₫</div>
-                <div className="text-[10px] text-slate-500 line-through">8 900 000 ₫</div>
-              </div>
-              <a
-                href="https://shopee.vn"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-orange-500"
-              >
-                Купить <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
-            <div>
-              <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                Lazada LazMall VN 🇻🇳
-                <span className="flex items-center gap-0.5 rounded bg-violet-500/20 px-1.5 py-0.5 text-[8px] font-bold text-violet-300">
-                  <Zap className="w-2.5 h-2.5" />ACCESSTRADE
-                </span>
-              </div>
-              <div className="text-[11px] text-slate-400">Доставка в Нячанг: 2 дня</div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-sm font-extrabold text-slate-100">7 650 000 ₫</div>
-                <div className="text-[10px] text-slate-500 line-through">8 500 000 ₫</div>
-              </div>
-              <a
-                href="https://lazada.vn"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-500"
-              >
-                Купить <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
-            <div>
-              <div className="text-xs font-bold text-slate-100">TikiNOW Express 🇻🇳</div>
-              <div className="text-[11px] text-slate-400">Доставка в Нячанг: Экспресс</div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-sm font-extrabold text-slate-100">7 800 000 ₫</div>
-                <div className="text-[10px] text-slate-500 line-through">8 200 000 ₫</div>
-              </div>
-              <a
-                href="https://tiki.vn"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-sky-500"
-              >
-                Купить <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-
-          {/* Kiki Fashion — ACCESSTRADE affiliate */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-pink-500/30">
-            <div>
-              <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                Kiki Fashion 👗
-                <span className="flex items-center gap-0.5 rounded bg-violet-500/20 px-1.5 py-0.5 text-[8px] font-bold text-violet-300">
-                  <Zap className="w-2.5 h-2.5" />ACCESSTRADE
-                </span>
-              </div>
-              <div className="text-[11px] text-slate-400">Thời trang nữ • Giao 3-5 ngày</div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-sm font-extrabold text-slate-100">8 100 000 ₫</div>
-                <div className="text-[10px] text-slate-500 line-through">9 200 000 ₫</div>
-              </div>
-              <a
-                href="https://www.kikifashion.com"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 rounded-lg bg-pink-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-pink-500"
-              >
-                Купить <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* PVZ Delivery Options Card */}
-      <div className="glass-panel rounded-2xl p-4 border border-cyan-500/30 bg-gradient-to-b from-cyan-950/20 to-slate-900 space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
-            <Package className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-extrabold text-slate-100 flex items-center gap-1.5">
-              Доставка в ПВЗ SmartSearch 🇻🇳
-              <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-400">
-                Нячанг • Дананг • Сайгон
-              </span>
-            </h3>
-            <p className="text-[11px] text-slate-400">Выберите удобный способ получения вашей посылки:</p>
-          </div>
-        </div>
-
-        {/* Action Buttons: Primary & Secondary */}
-        <div className="space-y-2 pt-1">
-          {/* PRIMARY: Buy via PVZ */}
-          <button
-            onClick={() => setShowPvzModal(true)}
-            className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 p-3 text-xs font-extrabold text-white shadow-lg glow-cyan flex items-center justify-center gap-2 hover:opacity-95 transition-all"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            1. Выкупить с доставкой в ПВЗ (Основной способ)
-          </button>
-
-          {/* SECONDARY: Self Order to PVZ address */}
-          <button
-            onClick={() => setShowPvzModal(true)}
-            className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 flex items-center justify-center gap-2 transition-all"
-          >
-            <Copy className="w-3.5 h-3.5 text-cyan-400" />
-            2. Скопировать адрес ПВЗ для своего заказа
-          </button>
-        </div>
-      </div>
-
       {/* Sticky Bottom Alert Button */}
       <div className="fixed bottom-16 left-4 right-4 z-40">
         <button
@@ -292,17 +365,16 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
       {showPvzModal && (
         <PvzModal
           product={{
-            title: 'Беспроводные полноразмерные наушники Sony WH-1000XM5 Black',
-            price: 7490000,
+            title: title,
+            price: minPrice || 7490000,
             currency: 'VND',
-            platform: 'shopee',
-            product_url: 'https://shopee.vn',
-            image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
+            platform: sortedOffers[0]?.platform || 'shopee',
+            product_url: sortedOffers[0]?.url || getMarketplaceLink('shopee'),
+            image_url: image,
           }}
           onClose={() => setShowPvzModal(false)}
         />
       )}
-
 
       {/* Price Alert Bottom Modal */}
       {showAlertModal && (

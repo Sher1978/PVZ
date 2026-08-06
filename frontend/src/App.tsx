@@ -16,7 +16,7 @@ declare global {
 
 export function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -31,42 +31,47 @@ export function App() {
     setActiveTab('search');
   };
 
-  const handleSelectProduct = (productId: string) => {
-    setSelectedProductId(productId);
+  const handleSelectProduct = (product: any) => {
+    if (typeof product === 'string') {
+      setSelectedProduct({ id: product, title: product });
+    } else {
+      setSelectedProduct(product);
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 max-w-md mx-auto relative px-4 pt-3 font-sans">
-      {selectedProductId ? (
+      {selectedProduct && (
         <ProductDetailScreen
-          productId={selectedProductId}
-          onBack={() => setSelectedProductId(null)}
+          productId={selectedProduct.id}
+          productItem={selectedProduct}
+          onBack={() => setSelectedProduct(null)}
         />
-      ) : (
-        <>
-          {activeTab === 'home' && (
-            <HomeScreen
-              onSearchSubmit={handleSearchSubmit}
-              onSelectProduct={handleSelectProduct}
-            />
-          )}
-          {activeTab === 'search' && (
-            <SearchScreen
-              initialQuery={searchQuery || 'Sony WH-1000XM5'}
-              onSelectProduct={handleSelectProduct}
-            />
-          )}
-          {activeTab === 'pvz_orders' && (
-            <PvzOrdersScreen onSelectProduct={handleSelectProduct} />
-          )}
-          {activeTab === 'alerts' && (
-            <AlertsScreen onSelectProduct={handleSelectProduct} />
-          )}
-          {activeTab === 'favorites' && (
-            <AlertsScreen onSelectProduct={handleSelectProduct} />
-          )}
-        </>
       )}
+
+      <div className={selectedProduct ? 'hidden' : 'block'}>
+        {activeTab === 'home' && (
+          <HomeScreen
+            onSearchSubmit={handleSearchSubmit}
+            onSelectProduct={handleSelectProduct}
+          />
+        )}
+        <div className={activeTab === 'search' ? 'block' : 'hidden'}>
+          <SearchScreen
+            initialQuery={searchQuery || 'Sony WH-1000XM5'}
+            onSelectProduct={handleSelectProduct}
+          />
+        </div>
+        {activeTab === 'pvz_orders' && (
+          <PvzOrdersScreen onSelectProduct={handleSelectProduct} />
+        )}
+        {activeTab === 'alerts' && (
+          <AlertsScreen onSelectProduct={handleSelectProduct} />
+        )}
+        {activeTab === 'favorites' && (
+          <AlertsScreen onSelectProduct={handleSelectProduct} />
+        )}
+      </div>
 
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>

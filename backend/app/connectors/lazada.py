@@ -37,8 +37,6 @@ class LazadaConnector(BaseMarketplaceConnector):
 
     async def search_products(self, query: str, limit: int = 20) -> List[StandardOffer]:
         offers = await self._fetch_from_lazada(query, limit)
-        if not offers:
-            offers = self._generate_fallback_offers(query, limit)
         return offers[:limit]
 
     async def _fetch_from_lazada(self, query: str, limit: int) -> List[StandardOffer]:

@@ -10,10 +10,11 @@ async def command_start_handler(message: types.Message, command: CommandObject):
     start_param = command.args
     user_name = message.from_user.first_name if message.from_user else "друг"
 
-    tma_url = "https://tma.smartsearch.app"
+    base_url = getattr(settings, "WEBAPP_URL", "https://tma.smartsearch.app").rstrip("/")
+    tma_url = base_url
     if start_param and start_param.startswith("p_"):
         product_id = start_param.replace("p_", "")
-        tma_url = f"https://tma.smartsearch.app/product/{product_id}"
+        tma_url = f"{base_url}/product/{product_id}"
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[

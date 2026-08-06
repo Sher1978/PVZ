@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     
     # Telegram Bot
     BOT_TOKEN: str = ""
+    BOT_USERNAME: str = "pvzNT_bot"
+    WEBAPP_URL: str = "https://smartsearch-tma.vercel.app"
     WEBHOOK_URL: Optional[str] = None
     
     # Security

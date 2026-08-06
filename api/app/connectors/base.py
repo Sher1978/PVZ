@@ -12,6 +12,7 @@ class StandardOffer(BaseModel):
     currency: str = "RUB"
     product_url: str
     image_url: Optional[str] = None
+    images: List[str] = []
     in_stock: bool = True
     rating: Optional[float] = None
     reviews_count: int = 0

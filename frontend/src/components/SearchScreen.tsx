@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, ExternalLink, Star, ArrowUpDown, Loader2, Zap } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Search, Filter, ExternalLink, Star, ArrowUpDown, Loader2, Zap, X } from 'lucide-react';
 
 interface SearchScreenProps {
   initialQuery?: string;
-  onSelectProduct: (productId: string) => void;
+  onSelectProduct: (product: any) => void;
 }
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
@@ -21,6 +21,7 @@ interface ApiItem {
   title: string;
   brand?: string;
   main_image?: string;
+  images?: string[];
   price: number;
   old_price?: number;
   platform: string;
@@ -38,6 +39,31 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
   const [results, setResults] = useState<ApiItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (initialQuery && initialQuery !== query) {
+      setQuery(initialQuery);
+    }
+  }, [initialQuery]);
+
+  const dismissKeyboard = () => {
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+    if (document.activeElement && typeof (document.activeElement as any).blur === 'function') {
+      (document.activeElement as HTMLElement).blur();
+    }
+    if (window.Telegram?.WebApp?.closeKeyboard) {
+      window.Telegram.WebApp.closeKeyboard();
+    }
+  };
+
+  const handleClearSearch = () => {
+    setQuery('');
+    setResults([]);
+    setHasSearched(false);
+  };
 
   const doSearch = useCallback(async (q: string, platform: string, sort: string) => {
     if (!q.trim()) return;
@@ -54,6 +80,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
       console.error('Search error:', e);
     } finally {
       setIsLoading(false);
+      dismissKeyboard();
     }
   }, []);
 
@@ -61,6 +88,22 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
     const debounce = setTimeout(() => doSearch(query, selectedPlatform, sortMode), 600);
     return () => clearTimeout(debounce);
   }, [query, selectedPlatform, sortMode, doSearch]);
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    dismissKeyboard();
+    doSearch(query, selectedPlatform, sortMode);
+  };
+
+  const handleToggleSort = () => {
+    if (sortMode === 'relevance') {
+      setSortMode('price_asc');
+    } else if (sortMode === 'price_asc') {
+      setSortMode('price_desc');
+    } else {
+      setSortMode('relevance');
+    }
+  };
 
   const platforms = [
     { id: 'all',    label: 'Все платформы (VN)' },
@@ -81,22 +124,54 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
 
   const masterItems = Object.entries(grouped).map(([id, offers]) => {
     const best = offers.reduce((a, b) => a.price < b.price ? a : b);
-    return { id, title: best.title, brand: best.brand, image: best.main_image, offers, minPrice: best.price, rating: best.rating, reviewsCount: best.reviews_count };
+    const allImages = Array.from(
+      new Set(
+        offers.flatMap((o: any) => o.images || (o.main_image ? [o.main_image] : [])).filter(Boolean)
+      )
+    );
+    return {
+      id,
+      title: best.title,
+      brand: best.brand,
+      image: best.main_image,
+      images: allImages.length > 0 ? allImages : [best.main_image].filter(Boolean),
+      offers,
+      minPrice: best.price,
+      rating: best.rating,
+      reviewsCount: best.reviews_count
+    };
   });
+
+  if (sortMode === 'price_asc') {
+    masterItems.sort((a, b) => a.minPrice - b.minPrice);
+  } else if (sortMode === 'price_desc') {
+    masterItems.sort((a, b) => b.minPrice - a.minPrice);
+  }
 
   return (
     <div className="space-y-4 pb-24 pt-2">
       {/* Search Header */}
-      <div className="relative">
+      <form onSubmit={handleFormSubmit} className="relative">
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Поиск товаров на всех площадках..."
-          className="w-full rounded-xl bg-slate-900 border border-slate-800 py-3.5 pl-11 pr-4 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
+          placeholder="Поиск товаров по ключевому слову или ссылке..."
+          className="w-full rounded-xl bg-slate-900 border border-slate-800 py-3.5 pl-11 pr-10 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
         />
         <Search className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-500" />
-      </div>
+        {query && (
+          <button
+            type="button"
+            onClick={handleClearSearch}
+            className="absolute right-3 top-3.5 p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+            title="Очистить поиск"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </form>
 
       {/* Platform Filter Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -130,7 +205,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
           )}
         </span>
         <button
-          onClick={() => setSortMode(sortMode === 'price_asc' ? 'price_desc' : 'price_asc')}
+          onClick={handleToggleSort}
           className="flex items-center gap-1 text-cyan-400 font-medium hover:underline"
         >
           <ArrowUpDown className="w-3.5 h-3.5" />
@@ -143,7 +218,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
         {masterItems.map((item) => (
           <div
             key={item.id}
-            onClick={() => onSelectProduct(item.id)}
+            onClick={() => onSelectProduct(item)}
             className="glass-panel rounded-2xl p-4 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer space-y-3"
           >
             <div className="flex gap-3">

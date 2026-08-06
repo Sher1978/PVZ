@@ -10,6 +10,8 @@ from app.connectors.shein import shein_connector
 from app.services.matcher import product_matcher
 from app.models import MasterProduct, Offer
 
+from app.services.url_parser import resolve_search_query
+
 router = APIRouter(prefix="/search", tags=["Search"])
 
 @router.get("")
@@ -21,16 +23,19 @@ async def search_products(
     limit: int = Query(20, ge=1, le=50),
     db: AsyncSession = Depends(get_db)
 ):
+    # Resolve product URL to keywords if input is a URL
+    search_keywords = await resolve_search_query(q)
+
     # Fetch from Vietnam marketplaces concurrently
     offers = []
     if marketplace in ["all", "shopee"]:
-        offers.extend(await shopee_connector.search_products(q, limit=limit))
+        offers.extend(await shopee_connector.search_products(search_keywords, limit=limit))
     if marketplace in ["all", "lazada"]:
-        offers.extend(await lazada_connector.search_products(q, limit=limit))
+        offers.extend(await lazada_connector.search_products(search_keywords, limit=limit))
     if marketplace in ["all", "tiki"]:
-        offers.extend(await tiki_connector.search_products(q, limit=limit))
+        offers.extend(await tiki_connector.search_products(search_keywords, limit=limit))
     if marketplace in ["all", "shein"]:
-        offers.extend(await shein_connector.search_products(q, limit=limit))
+        offers.extend(await shein_connector.search_products(search_keywords, limit=limit))
 
     # Match offers to master products
     master_items = []
@@ -53,6 +58,7 @@ async def search_products(
             "title": title,
             "brand": brand,
             "main_image": image,
+            "images": getattr(offer, "images", None) or ([image] if image else []),
             "price": offer.price,
             "old_price": offer.old_price,
             "platform": offer.platform,
