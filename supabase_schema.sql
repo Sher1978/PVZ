@@ -89,3 +89,46 @@ CREATE TABLE IF NOT EXISTS price_alerts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_alerts_active ON price_alerts(master_id) WHERE is_active = TRUE;
+
+-- 7. User table additions for Auctions
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_auction_subscribed BOOLEAN DEFAULT TRUE;
+
+-- 8. Auctions table
+CREATE TABLE IF NOT EXISTS auctions (
+    id VARCHAR(36) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    photos JSONB DEFAULT '[]'::jsonb,
+    starting_price NUMERIC(14, 2) NOT NULL,
+    current_price NUMERIC(14, 2) NOT NULL,
+    buyout_price NUMERIC(14, 2) NOT NULL,
+    min_bid_step NUMERIC(14, 2) DEFAULT 50000.0,
+    status VARCHAR(32) DEFAULT 'draft',
+    start_time TIMESTAMP WITH TIME ZONE,
+    end_time TIMESTAMP WITH TIME ZONE,
+    winner_id BIGINT,
+    winning_bid NUMERIC(14, 2),
+    winning_type VARCHAR(32),
+    winner_address TEXT,
+    payment_status VARCHAR(32) DEFAULT 'pending',
+    payment_deadline TIMESTAMP WITH TIME ZONE,
+    broadcast_messages JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_auctions_status ON auctions(status);
+CREATE INDEX IF NOT EXISTS idx_auctions_end_time ON auctions(end_time);
+
+-- 9. Auction Bids table
+CREATE TABLE IF NOT EXISTS auction_bids (
+    id VARCHAR(36) PRIMARY KEY,
+    auction_id VARCHAR(36) NOT NULL REFERENCES auctions(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL,
+    user_name VARCHAR(128),
+    username VARCHAR(64),
+    amount NUMERIC(14, 2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_auction_bids_auction_id ON auction_bids(auction_id);

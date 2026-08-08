@@ -25,7 +25,10 @@ async def command_start_handler(message: types.Message, command: CommandObject):
                 )
             ],
             [
-                InlineKeyboardButton(text="🔔 Мои Алерты", callback_data="my_alerts"),
+                InlineKeyboardButton(text="🔨 Спец Аукцион", callback_data="refresh_auction_menu"),
+                InlineKeyboardButton(text="🔔 Мои Алерты", callback_data="my_alerts")
+            ],
+            [
                 InlineKeyboardButton(text="ℹ️ Помощь", callback_data="help_info")
             ]
         ]

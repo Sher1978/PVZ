@@ -14,6 +14,30 @@ class Settings(BaseSettings):
     BOT_USERNAME: str = "pvzNT_bot"
     WEBAPP_URL: str = "https://smartsearch-tma.vercel.app"
     WEBHOOK_URL: Optional[str] = None
+    ADMIN_IDS: str = ""  # Comma separated list of admin telegram IDs
+    SUPERADMIN_IDS: str = ""  # Comma separated list of superadmin telegram IDs
+
+    @property
+    def admin_ids_set(self) -> set[int]:
+        if not self.ADMIN_IDS:
+            return set()
+        res = set()
+        for item in self.ADMIN_IDS.split(","):
+            item = item.strip()
+            if item.isdigit():
+                res.add(int(item))
+        return res
+
+    @property
+    def superadmin_ids_set(self) -> set[int]:
+        if not self.SUPERADMIN_IDS:
+            return set()
+        res = set()
+        for item in self.SUPERADMIN_IDS.split(","):
+            item = item.strip()
+            if item.isdigit():
+                res.add(int(item))
+        return res
     
     # Security
     JWT_SECRET: str = "default_jwt_secret_change_in_prod"
