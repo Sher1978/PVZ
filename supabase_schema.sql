@@ -90,9 +90,15 @@ CREATE TABLE IF NOT EXISTS price_alerts (
 
 CREATE INDEX IF NOT EXISTS idx_alerts_active ON price_alerts(master_id) WHERE is_active = TRUE;
 
--- 7. User table additions for Auctions
+-- 7. User table additions for Profile and Auctions
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_auction_subscribed BOOLEAN DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(32);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS delivery_address TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(64) DEFAULT 'Нячанг';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_pvz VARCHAR(128) DEFAULT 'Нячанг (Север)';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS notes TEXT;
+
 
 -- 8. Auctions table
 CREATE TABLE IF NOT EXISTS auctions (

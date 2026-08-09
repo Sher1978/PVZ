@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api.v1 import auth, search, alerts, pvz
+from app.api.v1 import auth, search, alerts, pvz, user
 from app.bot.main import bot, dp
 from aiogram.types import Update
 
@@ -22,6 +22,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")
 app.include_router(alerts.router, prefix="/api/v1")
 app.include_router(pvz.router, prefix="/api/v1")
+app.include_router(user.router, prefix="/api/v1")
 
 
 @app.get("/")

@@ -14,6 +14,7 @@ const PLATFORM_CONFIG: Record<string, { label: string; color: string; badge?: st
   tiki:   { label: 'Tiki VN 🇻🇳',    color: 'bg-sky-500' },
   shein:  { label: 'Shein Global',    color: 'bg-emerald-600' },
   kiki:   { label: 'Kiki Fashion 👗', color: 'bg-pink-500',   badge: 'ACCESSTRADE' },
+  tiktok: { label: 'TikTok Shop 🎵', color: 'bg-rose-500',   badge: 'ACCESSTRADE 20%' },
 };
 
 interface ApiItem {
@@ -109,6 +110,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
     { id: 'all',    label: 'Все платформы (VN)' },
     { id: 'shopee', label: 'Shopee VN 🇻🇳' },
     { id: 'lazada', label: 'Lazada VN 🇻🇳' },
+    { id: 'tiktok', label: 'TikTok Shop 🎵' },
     { id: 'tiki',   label: 'Tiki VN 🇻🇳' },
     { id: 'kiki',   label: 'Kiki Fashion 👗' },
     { id: 'shein',  label: 'Shein Global' },

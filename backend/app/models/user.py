@@ -13,5 +13,11 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     role = Column(String(32), default="user", index=True)  # superadmin, admin, staff, user
     is_auction_subscribed = Column(Boolean, default=True)
+    phone_number = Column(String(32), nullable=True)
+    delivery_address = Column(String(512), nullable=True)
+    city = Column(String(64), default="Нячанг")
+    preferred_pvz = Column(String(128), default="Нячанг (Север)")
+    notes = Column(String(512), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_active_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+

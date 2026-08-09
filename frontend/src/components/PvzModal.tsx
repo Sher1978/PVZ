@@ -45,16 +45,38 @@ const PVZ_POINTS = [
 ];
 
 export const PvzModal: React.FC<PvzModalProps> = ({ product, onClose, onOrderCreated }) => {
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const telegramId = tgUser?.id || 123456789;
+  const initialName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь' : 'Пользователь ПВЗ';
+
   const [activeTab, setActiveTab] = useState<'buy_for_me' | 'self_order'>('buy_for_me');
   const [selectedPvzId, setSelectedPvzId] = useState(PVZ_POINTS[0].id);
-  const [recipientName, setRecipientName] = useState('Игорь Филов');
+  const [recipientName, setRecipientName] = useState(initialName);
   const [recipientPhone, setRecipientPhone] = useState('+84 912 345 678');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<any>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
+        const res = await fetch(`${API_BASE}/api/v1/user/profile?telegram_id=${telegramId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.first_name) setRecipientName(data.first_name);
+          if (data.phone_number) setRecipientPhone(data.phone_number);
+        }
+      } catch (e) {
+        console.error('Failed to prefill profile in PvzModal:', e);
+      }
+    };
+    loadUserProfile();
+  }, [telegramId]);
+
   const currentPvz = PVZ_POINTS.find((p) => p.id === selectedPvzId) || PVZ_POINTS[0];
-  const personalShippingId = '#SS-8841-VN';
+  const personalShippingId = `#SS-${telegramId.toString().slice(-4)}-VN`;
+
 
   const handleCopy = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);

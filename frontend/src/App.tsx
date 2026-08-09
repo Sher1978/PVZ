@@ -5,6 +5,7 @@ import { SearchScreen } from './components/SearchScreen';
 import { ProductDetailScreen } from './components/ProductDetailScreen';
 import { AlertsScreen } from './components/AlertsScreen';
 import { PvzOrdersScreen } from './components/PvzOrdersScreen';
+import { ProfileScreen } from './components/ProfileScreen';
 
 declare global {
   interface Window {
@@ -23,6 +24,12 @@ export function App() {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['home', 'search', 'pvz_orders', 'profile', 'alerts'].includes(tabParam)) {
+      setActiveTab(tabParam);
     }
   }, []);
 
@@ -65,10 +72,10 @@ export function App() {
         {activeTab === 'pvz_orders' && (
           <PvzOrdersScreen onSelectProduct={handleSelectProduct} />
         )}
-        {activeTab === 'alerts' && (
-          <AlertsScreen onSelectProduct={handleSelectProduct} />
+        {activeTab === 'profile' && (
+          <ProfileScreen onNavigateDelivery={() => setActiveTab('pvz_orders')} />
         )}
-        {activeTab === 'favorites' && (
+        {activeTab === 'alerts' && (
           <AlertsScreen onSelectProduct={handleSelectProduct} />
         )}
       </div>
@@ -79,4 +86,3 @@ export function App() {
 }
 
 export default App;
-

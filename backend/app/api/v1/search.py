@@ -8,6 +8,7 @@ from app.connectors.lazada import lazada_connector
 from app.connectors.tiki import tiki_connector
 from app.connectors.shein import shein_connector
 from app.connectors.kiki import kiki_connector
+from app.connectors.tiktok import tiktok_connector
 from app.services.accesstrade import generate_affiliate_link
 from app.services.matcher import product_matcher
 from app.models import MasterProduct, Offer
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/search", tags=["Search"])
 @router.get("")
 async def search_products(
     q: str = Query(..., description="Search query string"),
-    marketplace: Optional[str] = Query("all", description="shopee, lazada, tiki, shein, kiki, all"),
+    marketplace: Optional[str] = Query("all", description="shopee, lazada, tiki, shein, kiki, tiktok, all"),
     sort: Optional[str] = Query("relevance", description="price_asc, price_desc, relevance"),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=50),
@@ -40,6 +41,8 @@ async def search_products(
         offers.extend(await shein_connector.search_products(search_keywords, limit=limit))
     if marketplace in ["all", "kiki"]:
         offers.extend(await kiki_connector.search_products(search_keywords, limit=limit))
+    if marketplace in ["all", "tiktok"]:
+        offers.extend(await tiktok_connector.search_products(search_keywords, limit=limit))
 
     # Match offers to master products
     master_items = []
@@ -58,7 +61,7 @@ async def search_products(
             image = offer.image_url
 
         # Generate ACCESSTRADE affiliate link for supported platforms
-        affiliate_platforms = {"lazada", "shopee", "kiki"}
+        affiliate_platforms = {"lazada", "shopee", "kiki", "tiktok"}
         tracked_url = offer.product_url
         if offer.platform in affiliate_platforms:
             tracked_url = await generate_affiliate_link(

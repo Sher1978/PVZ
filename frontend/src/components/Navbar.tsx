@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, Heart, Home, Package } from 'lucide-react';
+import { Search, Bell, Home, Truck, User } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -10,11 +10,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'home', label: 'Главная', icon: Home },
     { id: 'search', label: 'Поиск', icon: Search },
-    { id: 'pvz_orders', label: 'ПВЗ Заказы', icon: Package },
+    { id: 'pvz_orders', label: 'Доставки', icon: Truck },
+    { id: 'profile', label: 'Профиль', icon: User },
     { id: 'alerts', label: 'Алерты', icon: Bell },
-    { id: 'favorites', label: 'Избранное', icon: Heart },
   ];
-
 
   const handleTabClick = (id: string) => {
     if (window.Telegram?.WebApp?.HapticFeedback) {

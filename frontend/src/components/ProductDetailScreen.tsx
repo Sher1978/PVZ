@@ -32,6 +32,7 @@ const PLATFORM_CONFIG: Record<string, { label: string; color: string; badge?: st
   tiki:   { label: 'TikiNOW Express 🇻🇳', color: 'bg-sky-500', btnBg: 'bg-sky-600', hoverBg: 'hover:bg-sky-500' },
   shein:  { label: 'Shein Global', color: 'bg-emerald-600', btnBg: 'bg-emerald-600', hoverBg: 'hover:bg-emerald-500' },
   kiki:   { label: 'Kiki Fashion 👗', color: 'bg-pink-500', badge: 'ACCESSTRADE', btnBg: 'bg-pink-600', hoverBg: 'hover:bg-pink-500' },
+  tiktok: { label: 'TikTok Shop VN 🎵', color: 'bg-rose-500', badge: 'ACCESSTRADE 20%', btnBg: 'bg-rose-600', hoverBg: 'hover:bg-rose-500' },
 };
 
 export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ productId, productItem, onBack }) => {
@@ -64,7 +65,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
   const currentImage = galleryImages[activeImageIndex] || galleryImages[0];
 
   const getMarketplaceLink = (platform: string, customUrl?: string) => {
-    if (customUrl && !['https://shopee.vn', 'https://lazada.vn', 'https://tiki.vn', 'https://www.kikifashion.com'].includes(customUrl)) {
+    if (customUrl && !['https://shopee.vn', 'https://lazada.vn', 'https://tiki.vn', 'https://www.kikifashion.com', 'https://www.tiktok.com'].includes(customUrl)) {
       return customUrl;
     }
     const q = encodeURIComponent(title);
@@ -79,6 +80,8 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
         return `https://www.shein.com/pdsearch/${q}`;
       case 'kiki':
         return `https://www.google.com/search?q=${q}+kiki+fashion+vietnam`;
+      case 'tiktok':
+        return `https://www.tiktok.com/search?q=${q}`;
       default:
         return `https://shopee.vn/search?keyword=${q}`;
     }
