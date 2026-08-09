@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     ACCESSTRADE_TOKEN: Optional[str] = None
     ACCESSTRADE_LAZADA_CAMPAIGN_ID: Optional[str] = None   # Lazada VN CPS campaign
     ACCESSTRADE_SHOPEE_CAMPAIGN_ID: Optional[str] = None   # Shopee VN Smartlink campaign
+    ACCESSTRADE_TIKI_CAMPAIGN_ID: Optional[str] = None     # Tiki VN campaign
     ACCESSTRADE_KIKI_CAMPAIGN_ID: Optional[str] = None     # Kiki Fashion VN campaign
     ACCESSTRADE_TIKTOK_CAMPAIGN_ID: Optional[str] = "748"  # TikTok Shop CPS campaign (Commission up to 20%)
 
