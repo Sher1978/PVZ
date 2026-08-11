@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, MapPin, Building, Save, Loader2, CheckCircle2, ShieldCheck, Truck } from 'lucide-react';
+import { User, Phone, MapPin, Building, Save, Loader2, CheckCircle2, ShieldCheck, Truck, Bell, HelpCircle } from 'lucide-react';
+import { HelpModal } from './HelpModal';
 
 interface ProfileScreenProps {
   onNavigateDelivery?: () => void;
+  onNavigateAlerts?: () => void;
+  onOpenHelp?: () => void;
 }
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigateDelivery }) => {
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigateDelivery, onNavigateAlerts, onOpenHelp }) => {
   const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const telegramId = tgUser?.id || 123456789;
-  const initialName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.strip() || 'Пользователь' : 'Пользователь ПВЗ';
+  const initialName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Пользователь' : 'Пользователь ПВЗ';
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   const [firstName, setFirstName] = useState(initialName);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -220,18 +224,51 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigateDelivery
         )}
       </form>
 
-      {/* Quick link to delivery tracking */}
-      {onNavigateDelivery && (
+      {/* Quick Action Links */}
+      <div className="space-y-2">
+        {onNavigateDelivery && (
+          <button
+            onClick={onNavigateDelivery}
+            className="w-full rounded-2xl bg-slate-900 border border-slate-800 p-4 text-xs font-bold text-slate-300 hover:text-white flex items-center justify-between transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <Truck className="w-4 h-4 text-cyan-400" />
+              <span>Мои доставки и статус посылок</span>
+            </div>
+            <span className="text-cyan-400 font-extrabold text-xs">Перейти →</span>
+          </button>
+        )}
+
+        {onNavigateAlerts && (
+          <button
+            onClick={onNavigateAlerts}
+            className="w-full rounded-2xl bg-slate-900 border border-slate-800 p-4 text-xs font-bold text-slate-300 hover:text-white flex items-center justify-between transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <Bell className="w-4 h-4 text-amber-400" />
+              <span>Мои Алерты (Подписки на цены)</span>
+            </div>
+            <span className="text-amber-400 font-extrabold text-xs">Открыть →</span>
+          </button>
+        )}
+
         <button
-          onClick={onNavigateDelivery}
+          onClick={() => {
+            if (onOpenHelp) onOpenHelp();
+            else setShowHelpModal(true);
+          }}
           className="w-full rounded-2xl bg-slate-900 border border-slate-800 p-4 text-xs font-bold text-slate-300 hover:text-white flex items-center justify-between transition-all"
         >
-          <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-cyan-400" />
-            <span>Мои доставки и статус посылок</span>
+          <div className="flex items-center gap-2.5">
+            <HelpCircle className="w-4 h-4 text-emerald-400" />
+            <span>Помощь и Поддержка 💬</span>
           </div>
-          <span className="text-cyan-400 font-extrabold text-xs">Перейти →</span>
+          <span className="text-emerald-400 font-extrabold text-xs">Справка / Чат →</span>
         </button>
+      </div>
+
+      {showHelpModal && (
+        <HelpModal onClose={() => setShowHelpModal(false)} />
       )}
     </div>
   );

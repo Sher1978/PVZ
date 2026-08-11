@@ -42,6 +42,46 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
   const [targetPrice, setTargetPrice] = useState('7000000');
   const [isAlertCreated, setIsAlertCreated] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('smartsearch_favorites');
+      if (stored) {
+        const favs = JSON.parse(stored);
+        setIsFavorite(favs.some((f: any) => f.id === productId || f.master_id === productId));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [productId]);
+
+  const toggleFavorite = () => {
+    try {
+      const stored = localStorage.getItem('smartsearch_favorites');
+      let favs: any[] = stored ? JSON.parse(stored) : [];
+      if (isFavorite) {
+        favs = favs.filter((f) => f.id !== productId && f.master_id !== productId);
+        setIsFavorite(false);
+      } else {
+        favs.push({
+          id: productId,
+          master_id: productId,
+          title: productItem?.title || 'Товар',
+          brand: productItem?.brand,
+          image: currentImage,
+          price: sortedOffers[0]?.price || 7490000,
+        });
+        setIsFavorite(true);
+      }
+      localStorage.setItem('smartsearch_favorites', JSON.stringify(favs));
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const title = productItem?.title || 'Беспроводные полноразмерные наушники Sony WH-1000XM5 Black';
   const brand = productItem?.brand || 'Sony • Электроника';
@@ -122,8 +162,16 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
           <ArrowLeft className="w-4 h-4" /> Назад
         </button>
         <div className="flex gap-2">
-          <button className="p-2 rounded-xl bg-slate-900 text-slate-300 border border-slate-800 hover:text-rose-400">
-            <Heart className="w-4 h-4" />
+          <button
+            onClick={toggleFavorite}
+            className={`p-2 rounded-xl border transition-all ${
+              isFavorite
+                ? 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                : 'bg-slate-900 text-slate-300 border-slate-800 hover:text-rose-400'
+            }`}
+            title={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
+          >
+            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-rose-400' : ''}`} />
           </button>
           <button
             onClick={() => setShowAlertModal(true)}
@@ -373,7 +421,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
             currency: 'VND',
             platform: sortedOffers[0]?.platform || 'shopee',
             product_url: sortedOffers[0]?.url || getMarketplaceLink('shopee'),
-            image_url: image,
+            image_url: currentImage,
           }}
           onClose={() => setShowPvzModal(false)}
         />

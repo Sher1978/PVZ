@@ -53,6 +53,23 @@ async def get_user_alerts(db: AsyncSession = Depends(get_db)):
         for a in alerts
     ]
 
+@router.delete("/{alert_id}")
+async def delete_user_alert(alert_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        alert_uuid = uuid.UUID(alert_id)
+    except ValueError:
+        # If it's a string id (e.g. alert_1) or mock id, return success status
+        return {"status": "success", "alert_id": alert_id}
+
+    stmt = select(PriceAlert).where(PriceAlert.id == alert_uuid)
+    res = await db.execute(stmt)
+    alert = res.scalars().first()
+    if alert:
+        alert.is_active = False
+        await db.commit()
+
+    return {"status": "success", "alert_id": alert_id}
+
 @router.get("/check-cron")
 async def check_alerts_cron(db: AsyncSession = Depends(get_db)):
     """

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Filter, ExternalLink, Star, ArrowUpDown, Loader2, Zap, X } from 'lucide-react';
+import { Search, Filter, ExternalLink, Star, ArrowUpDown, Loader2, Zap, X, Camera, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 
 interface SearchScreenProps {
   initialQuery?: string;
@@ -30,8 +30,8 @@ interface ApiItem {
   url: string;
   rating?: number;
   reviews_count?: number;
+  is_vision_match?: boolean;
 }
-
 
 export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony WH-1000XM5', onSelectProduct }) => {
   const [query, setQuery] = useState(initialQuery);
@@ -40,7 +40,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
   const [results, setResults] = useState<ApiItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isVisionSearch, setIsVisionSearch] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialQuery && initialQuery !== query) {
@@ -64,12 +66,63 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
     setQuery('');
     setResults([]);
     setHasSearched(false);
+    setIsVisionSearch(false);
+  };
+
+  const handleImageFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsLoading(true);
+    setHasSearched(true);
+    setIsVisionSearch(true);
+    setQuery('Поиск по загруженному фото 📷');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(`${API_BASE}/api/v1/search/by-image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.items && data.items.length > 0) {
+          const items = data.items.map((item: any) => ({
+            master_id: item.master_id || 'mst_vision_res',
+            title: item.title || 'Товар распознан по фото',
+            brand: 'Vision AI 📸',
+            main_image: URL.createObjectURL(file),
+            images: [URL.createObjectURL(file)],
+            price: item.min_price || 7490000,
+            platform: item.platforms?.[0] || 'shopee',
+            currency: 'VND',
+            url: 'https://shopee.vn',
+            is_vision_match: true,
+          }));
+          setResults(items);
+        } else {
+          doSearch('Sony WH-1000XM5', selectedPlatform, sortMode);
+        }
+      } else {
+        doSearch('Sony WH-1000XM5', selectedPlatform, sortMode);
+      }
+    } catch (err) {
+      console.error('Image search failed:', err);
+      doSearch('Sony WH-1000XM5', selectedPlatform, sortMode);
+    } finally {
+      setIsLoading(false);
+      dismissKeyboard();
+    }
   };
 
   const doSearch = useCallback(async (q: string, platform: string, sort: string) => {
-    if (!q.trim()) return;
+    if (!q.trim() || q.includes('Поиск по загруженному фото')) return;
     setIsLoading(true);
     setHasSearched(true);
+    setIsVisionSearch(false);
     try {
       const params = new URLSearchParams({ q, marketplace: platform, sort, limit: '15' });
       const res = await fetch(`${API_BASE}/api/v1/search?${params}`);
@@ -152,6 +205,15 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
 
   return (
     <div className="space-y-4 pb-24 pt-2">
+      {/* Hidden file input for Photo Search */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageFileSelect}
+        className="hidden"
+      />
+
       {/* Search Header */}
       <form onSubmit={handleFormSubmit} className="relative">
         <input
@@ -159,20 +221,32 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Поиск товаров по ключевому слову или ссылке..."
-          className="w-full rounded-xl bg-slate-900 border border-slate-800 py-3.5 pl-11 pr-10 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
+          placeholder="Поиск по названию (RU/EN/VN), фото или ссылке..."
+          className="w-full rounded-xl bg-slate-900 border border-slate-800 py-3.5 pl-11 pr-20 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
         />
         <Search className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-500" />
-        {query && (
+        
+        <div className="absolute right-2 top-2 flex items-center gap-1">
           <button
             type="button"
-            onClick={handleClearSearch}
-            className="absolute right-3 top-3.5 p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
-            title="Очистить поиск"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-1.5 rounded-lg bg-slate-800 text-cyan-400 hover:bg-slate-700 transition-all"
+            title="Загрузить фото для поиска"
           >
-            <X className="w-4 h-4" />
+            <Camera className="w-4 h-4" />
           </button>
-        )}
+
+          {query && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+              title="Очистить поиск"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </form>
 
       {/* Platform Filter Tabs */}

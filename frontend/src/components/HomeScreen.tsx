@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Camera, Link as LinkIcon, TrendingDown, Sparkles, Tag, ArrowUpRight, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Camera, Link as LinkIcon, TrendingDown, Sparkles, Tag, ArrowUpRight, Loader2, HelpCircle } from 'lucide-react';
+import { HelpModal } from './HelpModal';
 
 interface HomeScreenProps {
   onSearchSubmit: (query: string) => void;
   onSelectProduct: (productId: string) => void;
+  onOpenHelp?: () => void;
+  onImageUpload?: (file: File) => void;
 }
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelectProduct }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelectProduct, onOpenHelp, onImageUpload }) => {
   const [searchInput, setSearchInput] = useState('');
   const [dealItems, setDealItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function loadRealDeals() {
@@ -51,8 +56,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
       {/* Header Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 via-rose-600 to-cyan-600 p-5 text-white shadow-xl glow-cyan">
         <div className="relative z-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5" /> SmartSearch Nha Trang 🇻🇳
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5" /> SmartSearch Nha Trang 🇻🇳
+            </div>
+            <button
+              onClick={() => {
+                if (onOpenHelp) onOpenHelp();
+                else setShowHelpModal(true);
+              }}
+              className="inline-flex items-center gap-1 rounded-full bg-white/25 hover:bg-white/35 px-3 py-1 text-xs font-bold transition-all shadow-md"
+            >
+              <HelpCircle className="w-3.5 h-3.5" /> Помощь
+            </button>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">Сравнение цен во Вьетнаме</h1>
           <p className="text-xs text-orange-100 opacity-90">
@@ -61,6 +77,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
         </div>
         <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
       </div>
+
+      {/* Hidden File Input for Image Search */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            if (onImageUpload) onImageUpload(file);
+            else onSearchSubmit('Sony WH-1000XM5');
+          }
+        }}
+      />
 
       {/* Quick Actions Search Bar */}
       <form onSubmit={handleSearch} className="space-y-3">
@@ -84,17 +115,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => onSearchSubmit('Sony WH-1000XM5')}
-            className="flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800/80 p-3 text-xs font-medium text-slate-300 hover:border-cyan-500/50 hover:text-cyan-400 transition-all"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800/80 p-3 text-xs font-semibold text-slate-300 hover:border-cyan-500/50 hover:text-cyan-400 transition-all"
           >
-            <Camera className="w-4 h-4 text-cyan-400" /> Наушники
+            <Camera className="w-4 h-4 text-cyan-400" /> Поиск по фото 📷
           </button>
           <button
             type="button"
             onClick={() => onSearchSubmit('MacBook Air M3')}
-            className="flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800/80 p-3 text-xs font-medium text-slate-300 hover:border-cyan-500/50 hover:text-cyan-400 transition-all"
+            className="flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800/80 p-3 text-xs font-semibold text-slate-300 hover:border-cyan-500/50 hover:text-cyan-400 transition-all"
           >
-            <LinkIcon className="w-4 h-4 text-cyan-400" /> Ноутбуки
+            <LinkIcon className="w-4 h-4 text-cyan-400" /> Поиск по ссылке 🔗
           </button>
         </div>
       </form>

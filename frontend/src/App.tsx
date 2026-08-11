@@ -6,6 +6,7 @@ import { ProductDetailScreen } from './components/ProductDetailScreen';
 import { AlertsScreen } from './components/AlertsScreen';
 import { PvzOrdersScreen } from './components/PvzOrdersScreen';
 import { ProfileScreen } from './components/ProfileScreen';
+import { HelpModal } from './components/HelpModal';
 
 declare global {
   interface Window {
@@ -19,6 +20,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showGlobalHelp, setShowGlobalHelp] = useState(false);
 
   useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -61,6 +63,8 @@ export function App() {
           <HomeScreen
             onSearchSubmit={handleSearchSubmit}
             onSelectProduct={handleSelectProduct}
+            onOpenHelp={() => setShowGlobalHelp(true)}
+            onImageUpload={() => setActiveTab('search')}
           />
         )}
         <div className={activeTab === 'search' ? 'block' : 'hidden'}>
@@ -73,12 +77,20 @@ export function App() {
           <PvzOrdersScreen onSelectProduct={handleSelectProduct} />
         )}
         {activeTab === 'profile' && (
-          <ProfileScreen onNavigateDelivery={() => setActiveTab('pvz_orders')} />
+          <ProfileScreen
+            onNavigateDelivery={() => setActiveTab('pvz_orders')}
+            onNavigateAlerts={() => setActiveTab('alerts')}
+            onOpenHelp={() => setShowGlobalHelp(true)}
+          />
         )}
         {activeTab === 'alerts' && (
           <AlertsScreen onSelectProduct={handleSelectProduct} />
         )}
       </div>
+
+      {showGlobalHelp && (
+        <HelpModal onClose={() => setShowGlobalHelp(false)} />
+      )}
 
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
