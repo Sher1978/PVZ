@@ -24,7 +24,7 @@ export const PvzOrdersScreen: React.FC<PvzOrdersScreenProps> = () => {
           id: 'ord_88412',
           pvz_name: 'ПВЗ Нячанг (Центральный)',
           product_title: 'Беспроводные полноразмерные наушники Sony WH-1000XM5 Black',
-          image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
+          image_url: 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c',
           platform: 'shopee',
           price: 7490000.0,
           currency: 'VND',

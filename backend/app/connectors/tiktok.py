@@ -45,7 +45,7 @@ class TikTokShopConnector(BaseMarketplaceConnector):
                 old_price=float(old_price),
                 currency="VND",
                 product_url=f"https://www.tiktok.com/search?q={quote_plus(query)}",
-                image_url="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&q=80",
+                image_url="https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c",
                 in_stock=True,
                 rating=round(4.9 - (i * 0.05), 1),
                 reviews_count=850 + (i * 350),

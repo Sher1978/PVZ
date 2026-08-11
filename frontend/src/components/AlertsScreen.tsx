@@ -16,7 +16,7 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ onSelectProduct }) =
       title: 'Sony WH-1000XM5 Black',
       targetPrice: 7000000,
       currentMinPrice: 7490000,
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
+      image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c',
       platform: 'Shopee VN'
     },
     {
@@ -25,7 +25,7 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ onSelectProduct }) =
       title: 'Apple MacBook Air 15" M3',
       targetPrice: 26000000,
       currentMinPrice: 27990000,
-      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80',
+      image: 'https://vn-live-01.slatic.net/p/3b1236f014e7ee87db5a31a980753b8f.jpg',
       platform: 'Lazada VN'
     }
   ]);
@@ -71,7 +71,7 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ onSelectProduct }) =
               title: 'Sony WH-1000XM5 Black',
               brand: 'Sony',
               price: 7490000,
-              image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
+              image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c',
             }
           ]);
         }
@@ -226,7 +226,7 @@ export const AlertsScreen: React.FC<AlertsScreenProps> = ({ onSelectProduct }) =
               className="glass-panel relative flex items-center gap-3.5 rounded-2xl p-3.5 border border-slate-800 hover:border-rose-500/40 transition-all"
             >
               <img
-                src={fav.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'}
+                src={fav.image || 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c'}
                 alt={fav.title}
                 onClick={() => onSelectProduct(fav.id || fav.master_id)}
                 className="w-16 h-16 rounded-xl object-cover bg-slate-800 cursor-pointer"

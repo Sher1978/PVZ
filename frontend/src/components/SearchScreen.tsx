@@ -299,7 +299,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ initialQuery = 'Sony
           >
             <div className="flex gap-3">
               <img
-                src={item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'}
+                src={item.image || 'https://vn-live-01.slatic.net/p/3b1236f014e7ee87db5a31a980753b8f.jpg'}
                 alt={item.title}
                 className="w-24 h-24 rounded-xl object-cover bg-slate-800"
               />

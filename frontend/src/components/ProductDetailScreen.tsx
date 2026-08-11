@@ -96,9 +96,9 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
   );
 
   const fallbackImages = [
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
-    'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80',
-    'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80',
+    'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c',
+    'https://vn-live-01.slatic.net/p/3b1236f014e7ee87db5a31a980753b8f.jpg',
+    'https://salt.tikicdn.com/cache/750x750/ts/product/6e/0d/ee/ef07106093557e4e08bf6ea1ff635a90.jpg',
   ];
 
   const galleryImages = imagesList.length > 0 ? imagesList : fallbackImages;

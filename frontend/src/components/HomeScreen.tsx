@@ -153,7 +153,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSearchSubmit, onSelect
                 className="glass-panel group relative flex items-center gap-3.5 rounded-xl p-3 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer"
               >
                 <img
-                  src={item.main_image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80'}
+                  src={item.main_image || 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c'}
                   alt={item.title}
                   className="w-20 h-20 rounded-lg object-cover bg-slate-800 group-hover:scale-105 transition-transform"
                 />

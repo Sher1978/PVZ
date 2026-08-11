@@ -84,7 +84,7 @@ class ShopeeConnector(BaseMarketplaceConnector):
                 old_price=float(old_price),
                 currency="VND",
                 product_url=f"https://shopee.vn/search?keyword={query}",
-                image_url="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80",
+                image_url="https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c",
                 in_stock=True,
                 rating=round(4.7 + (i * 0.1), 1),
                 reviews_count=450 + (i * 200),

@@ -23,7 +23,7 @@ class SheinConnector(BaseMarketplaceConnector):
             old_price=380000.0,
             currency="VND",
             product_url=f"https://www.shein.com/pdsearch/{query}/",
-            image_url="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80",
+            image_url="https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c",
             in_stock=True,
             rating=4.7,
             reviews_count=410

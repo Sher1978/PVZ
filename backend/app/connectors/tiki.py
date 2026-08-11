@@ -70,7 +70,7 @@ class TikiConnector(BaseMarketplaceConnector):
                 old_price=float(old_price),
                 currency="VND",
                 product_url=f"https://tiki.vn/search?q={query}",
-                image_url="https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&q=80",
+                image_url="https://salt.tikicdn.com/cache/750x750/ts/product/6e/0d/ee/ef07106093557e4e08bf6ea1ff635a90.jpg",
                 in_stock=True,
                 rating=round(4.8 + (i * 0.05), 1),
                 reviews_count=320 + (i * 180),
