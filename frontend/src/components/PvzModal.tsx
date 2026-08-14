@@ -94,7 +94,8 @@ export const PvzModal: React.FC<PvzModalProps> = ({ product, onClose, onOrderCre
     }
 
     try {
-      const response = await fetch('/api/v1/pvz/orders', {
+      const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
+      const response = await fetch(`${API_BASE}/api/v1/pvz/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -359,14 +360,25 @@ export const PvzModal: React.FC<PvzModalProps> = ({ product, onClose, onOrderCre
                 </div>
 
                 {/* Direct link to market */}
-                <a
-                  href={product.product_url || 'https://shopee.vn'}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full rounded-xl bg-slate-800 border border-slate-700 py-3 text-xs font-bold text-slate-100 hover:bg-slate-700 flex items-center justify-center gap-2"
-                >
-                  Перейти на маркетплейс ({product.platform.toUpperCase()}) <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
-                </a>
+                {(() => {
+                  let rawUrl = product.product_url || 'https://shopee.vn';
+                  if (rawUrl.includes('shopee.vn/product/') && !rawUrl.includes('-i.')) {
+                    rawUrl = rawUrl.replace('shopee.vn/product/', 'shopee.vn/product-i.');
+                  }
+                  if (rawUrl.includes('lazada.vn/products/') && !rawUrl.includes('-i')) {
+                    rawUrl = rawUrl.replace('lazada.vn/products/', 'lazada.vn/products/-i');
+                  }
+                  return (
+                    <a
+                      href={rawUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full rounded-xl bg-slate-800 border border-slate-700 py-3 text-xs font-bold text-slate-100 hover:bg-slate-700 flex items-center justify-center gap-2"
+                    >
+                      Перейти на маркетплейс ({product.platform.toUpperCase()}) <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
+                    </a>
+                  );
+                })()}
               </div>
             )}
           </>

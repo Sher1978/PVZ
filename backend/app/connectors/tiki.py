@@ -1,5 +1,6 @@
 import httpx
 from typing import List, Optional
+from urllib.parse import quote_plus
 from app.connectors.base import BaseMarketplaceConnector, StandardOffer
 from app.config import settings
 
@@ -69,7 +70,7 @@ class TikiConnector(BaseMarketplaceConnector):
                 price=float(price),
                 old_price=float(old_price),
                 currency="VND",
-                product_url=f"https://tiki.vn/search?q={query}",
+                product_url=f"https://tiki.vn/search?q={quote_plus(query)}",
                 image_url="https://salt.tikicdn.com/cache/750x750/ts/product/6e/0d/ee/ef07106093557e4e08bf6ea1ff635a90.jpg",
                 in_stock=True,
                 rating=round(4.8 + (i * 0.05), 1),

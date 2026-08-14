@@ -13,7 +13,8 @@ from app.services.accesstrade import generate_affiliate_link
 from app.services.matcher import product_matcher
 from app.models import MasterProduct, Offer
 
-from app.services.url_parser import resolve_search_query
+from app.services.url_parser import resolve_search_query, is_url_input, detect_url_platform
+from app.config import settings
 
 router = APIRouter(prefix="/search", tags=["Search"])
 
@@ -26,6 +27,43 @@ async def search_products(
     limit: int = Query(20, ge=1, le=50),
     db: AsyncSession = Depends(get_db)
 ):
+    # Direct URL Referral Conversion Handler
+    if is_url_input(q):
+        target_url = q.strip() if (q.strip().startswith("http://") or q.strip().startswith("https://")) else f"https://{q.strip()}"
+        platform = detect_url_platform(target_url)
+        extracted_title = await resolve_search_query(q)
+
+        if platform:
+            tracked_url = await generate_affiliate_link(platform=platform, product_url=target_url, sub1="direct_link")
+            # Verify if referral code was attached (tracked_url differs or token configured)
+            if tracked_url != target_url:
+                return {
+                    "is_url_convert": True,
+                    "success": True,
+                    "platform": platform,
+                    "original_url": target_url,
+                    "referral_url": tracked_url,
+                    "title": extracted_title or "Товар по ссылке",
+                    "items": []
+                }
+            else:
+                return {
+                    "is_url_convert": True,
+                    "success": False,
+                    "error": f"Не удалось сгенерировать реферальную ссылку для {platform.upper()}. Реферальная кампания или токен ACCESSTRADE не настроены.",
+                    "platform": platform,
+                    "original_url": target_url,
+                    "items": []
+                }
+        else:
+            return {
+                "is_url_convert": True,
+                "success": False,
+                "error": "Ссылка принадлежит нерасшифрованному или неподдерживаемому маркетплейсу.",
+                "original_url": target_url,
+                "items": []
+            }
+
     # Resolve product URL to keywords if input is a URL
     search_keywords = await resolve_search_query(q)
 

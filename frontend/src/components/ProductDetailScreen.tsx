@@ -106,7 +106,14 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
 
   const getMarketplaceLink = (platform: string, customUrl?: string) => {
     if (customUrl && !['https://shopee.vn', 'https://lazada.vn', 'https://tiki.vn', 'https://www.kikifashion.com', 'https://www.tiktok.com'].includes(customUrl)) {
-      return customUrl;
+      let fixedUrl = customUrl;
+      if (fixedUrl.includes('shopee.vn/product/') && !fixedUrl.includes('-i.')) {
+        fixedUrl = fixedUrl.replace('shopee.vn/product/', 'shopee.vn/product-i.');
+      }
+      if (fixedUrl.includes('lazada.vn/products/') && !fixedUrl.includes('-i')) {
+        fixedUrl = fixedUrl.replace('lazada.vn/products/', 'lazada.vn/products/-i');
+      }
+      return fixedUrl;
     }
     const q = encodeURIComponent(title);
     switch (platform) {
@@ -119,7 +126,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
       case 'shein':
         return `https://www.shein.com/pdsearch/${q}`;
       case 'kiki':
-        return `https://www.google.com/search?q=${q}+kiki+fashion+vietnam`;
+        return `https://www.kikifashion.com/search?q=${q}`;
       case 'tiktok':
         return `https://www.tiktok.com/search?q=${q}`;
       default:
@@ -257,7 +264,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ produc
               hoverBg: 'hover:bg-cyan-500'
             };
             const isBest = offer.price === minPrice;
-            const offerUrl = offer.url || getMarketplaceLink(offer.platform);
+            const offerUrl = getMarketplaceLink(offer.platform, offer.url);
 
             return (
               <div

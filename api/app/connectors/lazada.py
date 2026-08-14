@@ -79,7 +79,7 @@ class LazadaConnector(BaseMarketplaceConnector):
                                 image = f"https:{image}"
 
                             nid = item.get("nid") or item.get("itemId", sku)
-                            product_url = f"https://www.lazada.vn/products/{nid}.html"
+                            product_url = f"https://www.lazada.vn/products/-i{nid}.html"
 
                             offers.append(StandardOffer(
                                 platform="lazada",

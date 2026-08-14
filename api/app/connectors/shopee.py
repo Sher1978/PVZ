@@ -1,5 +1,6 @@
 import httpx
 from typing import List, Optional
+from urllib.parse import quote_plus
 from app.connectors.base import BaseMarketplaceConnector, StandardOffer
 from app.config import settings
 
@@ -12,7 +13,7 @@ class ShopeeConnector(BaseMarketplaceConnector):
         try:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Referer": f"https://shopee.vn/search?keyword={query}"
+                "Referer": f"https://shopee.vn/search?keyword={quote_plus(query)}"
             }
             params = {
                 "by": "relevance",
@@ -40,7 +41,7 @@ class ShopeeConnector(BaseMarketplaceConnector):
                         images_urls = [f"https://down-vn.img.susercontent.com/file/{h}" for h in images_hashes if h]
 
                         image_url = images_urls[0] if images_urls else "https://cdn.smartsearch.app/img/shopee_default.jpg"
-                        product_url = f"https://shopee.vn/product/{shopid}/{itemid}"
+                        product_url = f"https://shopee.vn/product-i.{shopid}.{itemid}"
 
                         offers.append(StandardOffer(
                             platform="shopee",
@@ -83,7 +84,7 @@ class ShopeeConnector(BaseMarketplaceConnector):
                 price=float(price),
                 old_price=float(old_price),
                 currency="VND",
-                product_url=f"https://shopee.vn/search?keyword={query}",
+                product_url=f"https://shopee.vn/search?keyword={quote_plus(query)}",
                 image_url="https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls530z22z4a01c",
                 in_stock=True,
                 rating=round(4.7 + (i * 0.1), 1),

@@ -1,7 +1,35 @@
 import re
+from typing import Optional
 from urllib.parse import unquote, parse_qs, urlparse
 import httpx
 from app.services.translator import translate_query_for_marketplaces
+
+def is_url_input(query: str) -> bool:
+    q_clean = query.strip()
+    if not q_clean:
+        return False
+    domain_match = re.search(r'^(?:https?://)?([a-zA-Z0-9-]+\.(?:vn|com|ru|co|net|org))(/.*)?$', q_clean, re.IGNORECASE)
+    return q_clean.startswith("http://") or q_clean.startswith("https://") or bool(domain_match)
+
+def detect_url_platform(url: str) -> Optional[str]:
+    u_lower = url.lower()
+    if "shopee.vn" in u_lower:
+        return "shopee"
+    elif "lazada.vn" in u_lower:
+        return "lazada"
+    elif "tiki.vn" in u_lower:
+        return "tiki"
+    elif "tiktok.com" in u_lower:
+        return "tiktok"
+    elif "kikifashion.com" in u_lower:
+        return "kiki"
+    elif "shein.com" in u_lower:
+        return "shein"
+    elif "ozon.ru" in u_lower:
+        return "ozon"
+    elif "wildberries.ru" in u_lower or "wb.ru" in u_lower:
+        return "wb"
+    return None
 
 async def resolve_search_query(query: str) -> str:
     """
@@ -13,9 +41,7 @@ async def resolve_search_query(query: str) -> str:
     if not q_clean:
         return q_clean
 
-    # Detect URLs pasted without http:// or https:// (e.g. shopee.vn/..., www.lazada.vn/...)
-    domain_match = re.search(r'^(?:https?://)?([a-zA-Z0-9-]+\.(?:vn|com|ru|co|net|org))(/.*)?$', q_clean, re.IGNORECASE)
-    is_url = q_clean.startswith("http://") or q_clean.startswith("https://") or bool(domain_match)
+    is_url = is_url_input(q_clean)
 
     if is_url:
         target_url = q_clean if (q_clean.startswith("http://") or q_clean.startswith("https://")) else f"https://{q_clean}"
